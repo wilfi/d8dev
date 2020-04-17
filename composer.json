@@ -34,6 +34,11 @@
     },
     "extra": {
         "composer-exit-on-patch-failure": true,
+        "patches": {
+            "drupal/hijri": {
+                "Attach config form to extend page": "https://www.drupal.org/files/issues/2020-04-17/attach_hijri_configs-3128590-2.patch"
+            }
+        },
         "drupal-scaffold": {
             "locations": {
                 "web-root": "./docroot"
@@ -89,8 +94,7 @@
         ],
         "patchLevel": {
             "drupal/core": "-p2"
-        },
-        "patches": {}
+        }
     },
     "autoload": {
         "psr-4": {
