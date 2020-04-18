@@ -36,7 +36,8 @@
         "composer-exit-on-patch-failure": true,
         "patches": {
             "drupal/hijri": {
-                "Attach config form to extend page": "https://www.drupal.org/files/issues/2020-04-17/attach_hijri_configs-3128590-2.patch"
+                "Attach config form to extend page": "https://www.drupal.org/files/issues/2020-04-17/attach_hijri_configs-3128590-2.patch",
+                "Invalid argument fix": "https://www.drupal.org/files/issues/2020-04-17/invalid_argument_fix-3128630-2.patch"
             }
         },
         "drupal-scaffold": {

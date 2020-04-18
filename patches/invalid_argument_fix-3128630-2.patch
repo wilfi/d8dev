@@ -1,0 +1,122 @@
+diff --git a/src/Form/HijirSettingsForm.php b/src/Form/HijirSettingsForm.php
+index ea116dd..b694b4c 100644
+--- a/src/Form/HijirSettingsForm.php
++++ b/src/Form/HijirSettingsForm.php
+@@ -60,13 +60,13 @@ class HijirSettingsForm extends ConfigFormBase {
+     $hijri_formatter = \Drupal::service('hijri.formatter');
+ 
+     $hijri_types = [
+-      'full' => t('Hijri full format: @hijri on @gregorian', [
++      'full' => $this->t('Hijri full format: @hijri on @gregorian', [
+         '@hijri' => $hijri_formatter->format(time(), 'custom', 'l j F  Y'),
+         '@gregorian' => \Drupal::service('date.formatter')->format(time(), 'custom', 'F j, Y')
+       ]),
+-      'long' => t('Hijri long format: @date', ['@date' => $hijri_formatter->format(time(), 'long', NULL)]),
+-      'medium' => t('Hijri medium format: @date', ['@date' => $hijri_formatter->format(time(), 'medium', NULL)]),
+-      'short' => t('Hijri short format: @date', ['@date' => $hijri_formatter->format(time(), 'short', NULL)]),
++      'long' => $this->t('Hijri long format: @date', ['@date' => $hijri_formatter->format(time(), 'long', NULL)]),
++      'medium' => $this->t('Hijri medium format: @date', ['@date' => $hijri_formatter->format(time(), 'medium', NULL)]),
++      'short' => $this->t('Hijri short format: @date', ['@date' => $hijri_formatter->format(time(), 'short', NULL)]),
+     ];
+     // Content types settings.
+     $form['hijri_settings'] = [
+@@ -74,7 +74,7 @@ class HijirSettingsForm extends ConfigFormBase {
+     ];
+     $form['hijri_settings']['correction'] = [
+       '#type' => 'details',
+-      '#title' => t('Hijri Correction'),
++      '#title' => $this->t('Hijri Correction'),
+       '#collapsible' => TRUE,
+       '#collapsed' => TRUE,
+       '#group' => 'hijri_settings',
+@@ -82,7 +82,7 @@ class HijirSettingsForm extends ConfigFormBase {
+     ];
+     $form['hijri_settings']['correction']['hijri_correction_value'] = [
+       '#type' => 'select',
+-      '#title' => t('Correction days'),
++      '#title' => $this->t('Correction days'),
+       '#options' => [
+         -2 => -2,
+         -1 => -1,
+@@ -97,7 +97,7 @@ class HijirSettingsForm extends ConfigFormBase {
+     // Per-path visibility.
+     $form['hijri_settings']['node_type'] = [
+       '#type' => 'details',
+-      '#title' => t('Content types'),
++      '#title' => $this->t('Content types'),
+       '#collapsible' => TRUE,
+       '#collapsed' => TRUE,
+       '#group' => 'hijri_settings',
+@@ -106,15 +106,15 @@ class HijirSettingsForm extends ConfigFormBase {
+     $types = array_map(array('\Drupal\Component\Utility\Html', 'escape'), node_type_get_names());
+     $form['hijri_settings']['node_type']['hijri_types'] = [
+       '#type' => 'checkboxes',
+-      '#title' => t('Hijri date Correction field for specific content types'),
+-      '#default_value' => $system_date->get('hijri_types'),
++      '#title' => $this->t('Hijri date Correction field for specific content types'),
++      '#default_value' => $system_date->get('hijri_types') ?? [],
+       '#options' => $types,
+-      '#description' => t('Add/Remove the Correction field for content type.'),
++      '#description' => $this->t('Add/Remove the Correction field for content type.'),
+     ];
+ 
+     $form['hijri_settings']['node_display'] = [
+       '#type' => 'details',
+-      '#title' => t('Node Display'),
++      '#title' => $this->t('Node Display'),
+       '#collapsible' => TRUE,
+       '#collapsed' => TRUE,
+       '#group' => 'hijri_settings',
+@@ -123,16 +123,16 @@ class HijirSettingsForm extends ConfigFormBase {
+ 
+     $form['hijri_settings']['node_display']['hijri_display'] = [
+       '#type' => 'radios',
+-      '#title' => t('Hijri date on the node view'),
++      '#title' => $this->t('Hijri date on the node view'),
+       '#default_value' => $system_date->get('hijri_display'),
+       '#options' => $hijri_types,
+-      '#description' => t('Select the display type you want to be in the node view page'),
++      '#description' => $this->t('Select the display type you want to be in the node view page'),
+     ];
+ 
+ 
+     $form['hijri_settings']['hijri_comment_display'] = [
+       '#type' => 'details',
+-      '#title' => t('Comment Display'),
++      '#title' => $this->t('Comment Display'),
+       '#collapsible' => TRUE,
+       '#collapsed' => TRUE,
+       '#group' => 'hijri_settings',
+@@ -141,16 +141,16 @@ class HijirSettingsForm extends ConfigFormBase {
+ 
+     $form['hijri_settings']['hijri_comment_display']['hijri_comment_display'] = [
+       '#type' => 'radios',
+-      '#title' => t('Hijri date on the comment area'),
++      '#title' => $this->t('Hijri date on the comment area'),
+       '#default_value' => $system_date->get('hijri_comment_display'),
+       '#options' => $hijri_types,
+-      '#description' => t('Select the display type you want to be in the comment area'),
++      '#description' => $this->t('Select the display type you want to be in the comment area'),
+     ];
+ 
+ 
+     $form['hijri_settings']['block_display'] = [
+       '#type' => 'details',
+-      '#title' => t('Block Display'),
++      '#title' => $this->t('Block Display'),
+       '#collapsible' => TRUE,
+       '#collapsed' => TRUE,
+       '#group' => 'hijri_settings',
+@@ -158,10 +158,10 @@ class HijirSettingsForm extends ConfigFormBase {
+     ];
+ 
+     $form['hijri_settings']['block_display']['hijri_display_block'] = [
+-      '#title' => t('Hijri date on Hijri block'),
++      '#title' => $this->t('Hijri date on Hijri block'),
+       '#default_value' => $system_date->get('hijri_display_block'),
+       '#options' => $hijri_types,
+-      '#description' => t('Select the display type you want in Hijri block'),
++      '#description' => $this->t('Select the display type you want in Hijri block'),
+     ];
+     return parent::buildForm($form, $form_state);
+   }

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d8b3e9e83331eb21a03da961d7d64c12",
+    "content-hash": "e1c4c6020ac4770fa3b9dec76711e2f0",
     "packages": [
         {
             "name": "acquia/blt",
@@ -5118,7 +5118,8 @@
                     }
                 },
                 "patches_applied": {
-                    "Attach config form to extend page": "https://www.drupal.org/files/issues/2020-04-17/attach_hijri_configs-3128590-2.patch"
+                    "Attach config form to extend page": "https://www.drupal.org/files/issues/2020-04-17/attach_hijri_configs-3128590-2.patch",
+                    "Invalid argument fix": "https://www.drupal.org/files/issues/2020-04-17/invalid_argument_fix-3128630-2.patch"
                 }
             },
             "notification-url": "https://packages.drupal.org/8/downloads",
