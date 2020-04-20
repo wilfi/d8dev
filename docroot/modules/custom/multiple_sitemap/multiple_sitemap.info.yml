@@ -1,0 +1,6 @@
+name: Multiple XML sitemap
+description: Create multiple sitemaps.
+type: module
+version: 1.1
+configure: multiple_sitemap.add_multiple_sitemap
+core: 8.x

@@ -1,0 +1,137 @@
+<?php
+
+/**
+ * @file
+ * Contain multiple sitemap schema detail.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function multiple_sitemap_schema() {
+  $schema['multiple_sitemap'] = [
+    'description' => 'The base table for multiple sitemap.',
+    'fields' => [
+      'ms_id' => [
+        'description' => 'The multiple sitemap id',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'file_name' => [
+        'description' => 'Sub sitemap file name',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'custom_links' => [
+        'description' => 'custom links',
+        'type' => 'text',
+        'size' => 'medium',
+      ],
+    ],
+    'unique keys' => [
+      'file_name' => ['file_name'],
+    ],
+    'primary key' => ['ms_id'],
+  ];
+
+  $schema['multiple_sitemap_content'] = [
+    'description' => 'The child table for multiple sitemap content type.',
+    'fields' => [
+      'target_ms_id' => [
+        'description' => 'The multiple sitemap id',
+        'type' => 'int',
+        'not null' => TRUE,
+      ],
+      'content_type' => [
+        'description' => 'content type machine name',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ],
+      'priority' => [
+        'description' => 'priority of links',
+        'type' => 'varchar',
+        'length' => 4,
+        'not null' => TRUE,
+        'default' => '0.5',
+      ],
+      'changefreq' => [
+        'description' => 'changefreq of links',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => 'monthly',
+      ],
+    ],
+    'primary key' => ['target_ms_id', 'content_type'],
+  ];
+
+  $schema['multiple_sitemap_menu'] = [
+    'description' => 'The child table for multiple sitemap menu.',
+    'fields' => [
+      'target_ms_id' => [
+        'description' => 'The multiple sitemap id',
+        'type' => 'int',
+        'not null' => TRUE,
+      ],
+      'menu_type' => [
+        'description' => 'menu machine name',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ],
+      'priority' => [
+        'description' => 'priority of links',
+        'type' => 'varchar',
+        'length' => 4,
+        'not null' => TRUE,
+        'default' => '0.5',
+      ],
+      'changefreq' => [
+        'description' => 'changefreq of links',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => 'monthly',
+      ],
+    ],
+    'primary key' => ['target_ms_id', 'menu_type'],
+  ];
+
+  $schema['multiple_sitemap_vocab'] = [
+    'description' => 'The child table for multiple sitemap vocabs.',
+    'fields' => [
+      'target_ms_id' => [
+        'description' => 'The multiple sitemap id',
+        'type' => 'int',
+        'not null' => TRUE,
+      ],
+      'vocab_type' => [
+        'description' => 'vocab machine name',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ],
+      'priority' => [
+        'description' => 'priority of links',
+        'type' => 'varchar',
+        'length' => 4,
+        'not null' => TRUE,
+        'default' => '0.5',
+      ],
+      'changefreq' => [
+        'description' => 'changefreq of links',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => 'monthly',
+      ],
+    ],
+    'primary key' => ['target_ms_id', 'vocab_type'],
+  ];
+
+  return $schema;
+}

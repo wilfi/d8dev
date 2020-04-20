@@ -1,0 +1,801 @@
+diff --git a/multiple_sitemap.services.yml b/multiple_sitemap.services.yml
+new file mode 100644
+index 0000000..726c3cd
+--- /dev/null
++++ b/multiple_sitemap.services.yml
+@@ -0,0 +1,4 @@
++services:
++  multiple_sitemap.db:
++    class: Drupal\multiple_sitemap\MultipleSitemapDB
++    arguments: ['@messenger']
+diff --git a/src/Forms/MultipleSitemapForm.php b/src/Forms/MultipleSitemapForm.php
+index 85fa9b9..b7802a2 100644
+--- a/src/Forms/MultipleSitemapForm.php
++++ b/src/Forms/MultipleSitemapForm.php
+@@ -1,8 +1,4 @@
+ <?php
+-/**
+- * @file
+- * Contains \Drupal\multiple_sitemap\Form\MultipleSitemapForm.
+- */
+ 
+ namespace Drupal\multiple_sitemap\Forms;
+ 
+@@ -10,15 +6,49 @@ use Drupal\Core\Form\FormBase;
+ use Drupal\Core\Form\FormStateInterface;
+ use Drupal\Component\Utility\UrlHelper;
+ use Drupal\multiple_sitemap\Controller\MultipleSitemap;
+-use Drupal\multiple_sitemap\MultipleSitemapDB;
++use Drupal\Core\Messenger\MessengerInterface;
++use Symfony\Component\DependencyInjection\ContainerInterface;
+ 
++/**
++ * Contains \Drupal\multiple_sitemap\Form\MultipleSitemapForm.
++ */
+ class MultipleSitemapForm extends FormBase {
+ 
+-  private $dbObject;
++  /**
++   * The Messenger service.
++   *
++   * @var \Drupal\Core\Messenger\MessengerInterface
++   */
++  protected $messenger;
++
++  /**
++   * The sitemap db.
++   *
++   * @var \Drupal\multiple_sitemap\MultipleSitemapDB
++   */
++  protected $sitemapDb;
++
++  /**
++   * MultipleSitemapForm class constructor.
++   *
++   * @param \Drupal\Core\Messenger\MessengerInterface $messenger
++   *   The messenger service.
++   * @param string $sitemap_db
++   *   The sitemap_db string.
++   */
++  public function __construct(MessengerInterface $messenger, $sitemap_db) {
++    $this->messenger = $messenger;
++    $this->sitemapDb = $sitemap_db;
++  }
+ 
+-  public function __construct()
+-  {
+-    $this->dbObject = new MultipleSitemapDB();
++  /**
++   * {@inheritdoc}
++   */
++  public static function create(ContainerInterface $container) {
++    return new static(
++      $container->get('messenger'),
++      $container->get('multiple_sitemap.db')
++    );
+   }
+ 
+   /**
+@@ -28,7 +58,7 @@ class MultipleSitemapForm extends FormBase {
+     return 'multiple_sitemap_form';
+   }
+ 
+-   /**
++  /**
+    * {@inheritdoc}
+    */
+   public function buildForm(array $form, FormStateInterface $form_state) {
+@@ -36,31 +66,31 @@ class MultipleSitemapForm extends FormBase {
+     $ms_id = \Drupal::routeMatch()->getParameter('ms_id');
+     $routeName = \Drupal::routeMatch()->getRouteName();
+ 
+-    $arguments = array();
++    $arguments = [];
+     if ($ms_id && $routeName == 'multiple_sitemap.edit_multiple_sitemap') {
+       if (is_numeric($ms_id) && $ms_id > 0) {
+-        $arguments = $this->dbObject->multiple_sitemap_get_record($ms_id);
++        $arguments = $this->sitemapDb->multiple_sitemap_get_record($ms_id);
+         if (!empty($arguments)) {
+-          $form_state->setStorage(array('update_ms_id' => $ms_id));
++          $form_state->setStorage(['update_ms_id' => $ms_id]);
+         }
+       }
+     }
+ 
+-    $form['file_name'] = array(
+-      '#title' => t('Filename'),
++    $form['file_name'] = [
++      '#title' => $this->t('Filename'),
+       '#type' => 'textfield',
+       '#default_value' => isset($arguments['file_name']) ? $arguments['file_name'] : '',
+       '#description' => t('Enter file name without xml extension.Allowed only "a-z, - and _"'),
+       '#required' => TRUE,
+-    );
++    ];
+ 
+     // Multiple custom links.
+-    $form['custom_links'] = array(
++    $form['custom_links'] = [
+       '#title' => t('Custom links'),
+       '#type' => 'textarea',
+       '#default_value' => isset($arguments['custom_links']) ? $arguments['custom_links'] : '',
+       '#description' => t('You can provides multiple custom links by comma-separated.'),
+-    );
++    ];
+ 
+     // Get the entity types.
+     $content_types = MultipleSitemap::multipleSitemapGetNodeTypes();
+@@ -68,21 +98,21 @@ class MultipleSitemapForm extends FormBase {
+     $vocab_types = MultipleSitemap::multipleSitemapGetVocabTypes();
+ 
+     // Created an array, for iteration.
+-    $entities = array(
+-      0 => array('entity_type' => 'content', 'types' => $content_types),
+-      1 => array('entity_type' => 'menu', 'types' => $menu_types),
+-      2 => array('entity_type' => 'vocab', 'types' => $vocab_types),
+-    );
++    $entities = [
++      0 => ['entity_type' => 'content', 'types' => $content_types],
++      1 => ['entity_type' => 'menu', 'types' => $menu_types],
++      2 => ['entity_type' => 'vocab', 'types' => $vocab_types],
++    ];
+ 
+     foreach ($entities as $value) {
+ 
+       $this->multiple_sitemap_create_tabular_checkbox_fields($form, $value['types'], $value['entity_type'], $arguments);
+     }
+ 
+-    $form['submit'] = array(
++    $form['submit'] = [
+       '#type' => 'submit',
+       '#value' => t('Submit'),
+-    );
++    ];
+ 
+     return $form;
+   }
+@@ -124,12 +154,12 @@ class MultipleSitemapForm extends FormBase {
+    */
+   public function submitForm(array &$form, FormStateInterface $form_state) {
+     foreach ($form_state->getValues() as $key => $value) {
+-      //drupal_set_message($key . ': ' . $value);
++      // drupal_set_message($key . ': ' . $value);.
+     }
+ 
+     $file_name = $form_state->getValue('file_name');
+ 
+-    $selected_ct = array();
++    $selected_ct = [];
+ 
+     // Get selected content types.
+     $content_types = $form_state->getValue('content');
+@@ -147,7 +177,7 @@ class MultipleSitemapForm extends FormBase {
+       }
+     }
+ 
+-    $selected_menu = array();
++    $selected_menu = [];
+ 
+     // Get selected menu types.
+     $menu_types = $form_state->getValue('menu');
+@@ -165,10 +195,10 @@ class MultipleSitemapForm extends FormBase {
+       }
+     }
+ 
+-    $selected_vocab = array();
++    $selected_vocab = [];
+ 
+     // Get selected vocab types.
+-    $vocab_types = $form_state->getValue('vocab');
++    $vocab_types = $form_state->getValue('vocab') ?? [];
+     foreach ($vocab_types as $i => $vocab_type) {
+       foreach ($vocab_type['vocab_type'] as $key => $value) {
+         if ($key === $value) {
+@@ -188,7 +218,7 @@ class MultipleSitemapForm extends FormBase {
+     $input['file_name'] = $file_name;
+     $input['custom_links'] = $custom_links;
+ 
+-    $multipleSitemapObj = new MultipleSitemapDB();
++    $multipleSitemapObj = $this->sitemapDb;
+ 
+     $update_ms_id = $form_state->getStorage();
+     $update_ms_id = isset($update_ms_id['update_ms_id']) ? $update_ms_id['update_ms_id'] : NULL;
+@@ -207,7 +237,7 @@ class MultipleSitemapForm extends FormBase {
+       $multipleSitemapObj->multiple_sitemap_save_sub_record('vocab', $ms_id, $selected_vocab);
+     }
+ 
+-    drupal_set_message(t('Addedd successfully'), 'status');
++    $this->messenger->addMessage($this->t('Added successfully'), $this->messenger::TYPE_STATUS);
+     $form_state->setRedirect('multiple_sitemap.dashboard');
+   }
+ 
+@@ -223,9 +253,9 @@ class MultipleSitemapForm extends FormBase {
+    * @param array $arguments
+    *   Having edit form argument.
+    */
+-  public function multiple_sitemap_create_tabular_checkbox_fields(&$form, $types = array(), $entity_type, $arguments = array()) {
++  public function multiple_sitemap_create_tabular_checkbox_fields(&$form, $types = [], $entity_type, $arguments = []) {
+ 
+-    $setvalues = array();
++    $setvalues = [];
+     if (!empty($arguments[$entity_type])) {
+       $records = $arguments[$entity_type];
+       foreach ($records as $key => $record) {
+@@ -236,19 +266,19 @@ class MultipleSitemapForm extends FormBase {
+     }
+ 
+     // Form container element.
+-    $form['multiple_siteamp_' . $entity_type . '_container'] = array(
++    $form['multiple_siteamp_' . $entity_type . '_container'] = [
+       '#type' => 'fieldset',
+-      '#title' => t('@entity_type type settings', array('@entity_type' => $entity_type)),
+-    );
++      '#title' => t('@entity_type type settings', ['@entity_type' => $entity_type]),
++    ];
+ 
+-    $form['multiple_siteamp_' . $entity_type . '_container'][$entity_type] = array(
++    $form['multiple_siteamp_' . $entity_type . '_container'][$entity_type] = [
+       '#prefix' => '<div id="multiple_siteamp_"' . $entity_type . '"_types">',
+       '#suffix' => '</div>',
+       '#tree' => TRUE,
+       '#theme' => 'table',
+-      '#header' => array(t('@entity_type Type', array('@entity_type' => $entity_type)), t('Priority'), t('Frequency')),
+-      '#rows' => array(),
+-    );
++      '#header' => [t('@entity_type Type', ['@entity_type' => $entity_type]), t('Priority'), t('Frequency')],
++      '#rows' => [],
++    ];
+ 
+     $priority_list = MultipleSitemap::multiple_sitemap_get_priority_options();
+ 
+@@ -258,7 +288,7 @@ class MultipleSitemapForm extends FormBase {
+     foreach ($types as $key => $type) {
+ 
+       // Set default values.
+-      $default_values = array();
++      $default_values = [];
+ 
+       if (in_array($key, $setvalueskeys)) {
+         $default_values['type'] = $key;
+@@ -269,49 +299,49 @@ class MultipleSitemapForm extends FormBase {
+       // Build the fields for this row in the table. We'll be adding
+       // these to the form several times, so it's easier if they are
+       // individual variables rather than in an array.
+-      $option = array($key => $key);
+-      $entity = array(
++      $option = [$key => $key];
++      $entity = [
+         '#id' => 'ms_' . $entity_type . '_' . $key,
+         '#type' => 'checkboxes',
+         '#options' => $option,
+-        '#default_value' => !empty($default_values) ? array($default_values['type']) : array(),
++        '#default_value' => !empty($default_values) ? [$default_values['type']] : [],
+         '#title' => '',
+-      );
++      ];
+ 
+-      $priority = array(
++      $priority = [
+         '#id' => 'msp_' . $entity_type . '_' . $key,
+         '#type' => 'select',
+         '#default_value' => isset($default_values['priority']) ? $default_values['priority'] : "0.5",
+         '#options' => $priority_list,
+-      );
++      ];
+ 
+-      $changefreq = array(
++      $changefreq = [
+         '#id' => 'msf_' . $entity_type . '_' . $key,
+         '#type' => 'select',
+         '#default_value' => isset($default_values['changefreq']) ? $default_values['changefreq'] : "monthly",
+         '#options' => $changefreq_list,
+-      );
++      ];
+ 
+       // Include the fields so they'll be rendered and named
+       // correctly, but they'll be ignored here when rendering as
+       // we're using #theme => table.
+       // Note that we're using references to the variables, not just
+       // copying the values into the array.
+-      $form['multiple_siteamp_' . $entity_type . '_container'][$entity_type][] = array(
++      $form['multiple_siteamp_' . $entity_type . '_container'][$entity_type][] = [
+         $entity_type . '_type' => &$entity,
+         'priority' => &$priority,
+         'changefreq' => &$changefreq,
+-      );
++      ];
+ 
+       // Now add references to the fields to the rows that
+       // `theme_table()` will use.
+       // As we've used references, the table will use the very same
+       // field arrays as the FAPI used above.
+-      $form['multiple_siteamp_' . $entity_type . '_container'][$entity_type]['#rows'][] = array(
+-        array('data' => &$entity),
+-        array('data' => &$priority),
+-        array('data' => &$changefreq),
+-      );
++      $form['multiple_siteamp_' . $entity_type . '_container'][$entity_type]['#rows'][] = [
++        ['data' => &$entity],
++        ['data' => &$priority],
++        ['data' => &$changefreq],
++      ];
+ 
+       // Because we've used references we need to `unset()` our
+       // variables. If we don't then every iteration of the loop will
+@@ -323,4 +353,5 @@ class MultipleSitemapForm extends FormBase {
+       unset($option);
+     }
+   }
++
+ }
+diff --git a/src/Forms/MultipleSitemapFormDelete.php b/src/Forms/MultipleSitemapFormDelete.php
+index 0a99f37..098126a 100644
+--- a/src/Forms/MultipleSitemapFormDelete.php
++++ b/src/Forms/MultipleSitemapFormDelete.php
+@@ -8,9 +8,9 @@ namespace Drupal\multiple_sitemap\Forms;
+ 
+ use Drupal\Core\Form\ConfirmFormBase;
+ use Drupal\Core\Form\FormStateInterface;
++use Drupal\Core\Messenger\MessengerInterface;
+ use Drupal\Core\Url;
+-use Drupal\multiple_sitemap\Controller\MultipleSitemap;
+-use Drupal\multiple_sitemap\MultipleSitemapDB;
++use Symfony\Component\DependencyInjection\ContainerInterface;
+ 
+ /**
+  * Defines a confirmation form for deleting multisitemap record.
+@@ -24,6 +24,44 @@ class MultipleSitemapFormDelete extends ConfirmFormBase {
+    */
+   protected $id;
+ 
++  /**
++   * The sitemap db.
++   *
++   * @var \Drupal\multiple_sitemap\MultipleSitemapDB
++   */
++  protected $sitemapDb;
++
++  /**
++   * The Messenger service.
++   *
++   * @var \Drupal\Core\Messenger\MessengerInterface
++   */
++  protected $messenger;
++
++  /**
++   * MultipleSitemapFormDelete class constructor.
++   *
++   * @param \Drupal\Core\Messenger\MessengerInterface $messenger
++   *   The messenger service.
++   * @param string $sitemap_db
++   *   The sitemap_db string.
++   */
++  public function __construct(MessengerInterface $messenger, $sitemap_db)
++  {
++    $this->messenger = $messenger;
++    $this->sitemapDb = $sitemap_db;
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  public static function create(ContainerInterface $container) {
++    return new static(
++      $container->get('messenger'),
++      $container->get('multiple_sitemap.db')
++    );
++  }
++
+   /**
+    * {@inheritdoc}.
+    */
+@@ -89,7 +127,7 @@ class MultipleSitemapFormDelete extends ConfirmFormBase {
+   public function submitForm(array &$form, FormStateInterface $form_state) {
+     $conn = \Drupal::database();
+     $ms_id = $this->id;
+-    $obj = new MultipleSitemapDB();
++    $obj = $this->sitemapDb;
+ 
+     // Delete xml file
+     $obj->delete_multiple_sitemap_xml_file($ms_id);
+@@ -104,7 +142,7 @@ class MultipleSitemapFormDelete extends ConfirmFormBase {
+       $obj->multiple_sitemap_delete_sub_record($record_type, $ms_id);
+     }
+ 
+-    drupal_set_message(t('Record deleted successfully'), 'status');
++    $this->messenger->addMessage($this->t('Record deleted successfully'), $this->messenger::TYPE_STATUS);
+     $form_state->setRedirect('multiple_sitemap.dashboard');
+   }
+ }
+diff --git a/src/MultipleSitemapDB.php b/src/MultipleSitemapDB.php
+index c5f8150..17d5bf8 100644
+--- a/src/MultipleSitemapDB.php
++++ b/src/MultipleSitemapDB.php
+@@ -1,15 +1,44 @@
+ <?php
+ 
+-/**
+- * @file
+- * Contain database function for multiple sitemap.
+- */
+-
+ namespace Drupal\multiple_sitemap;
++
++use Drupal\Core\Messenger\MessengerInterface;
+ use Drupal\Core\Url;
++use Symfony\Component\DependencyInjection\ContainerInterface;
++use Drupal\Core\StringTranslation\StringTranslationTrait;
+ 
++/**
++ *
++ */
+ class MultipleSitemapDB {
+ 
++  use StringTranslationTrait;
++  /**
++   * The Messenger service.
++   *
++   * @var \Drupal\Core\Messenger\MessengerInterface
++   */
++  protected $messenger;
++
++  /**
++   * MultipleSitemapForm class constructor.
++   *
++   * @param \Drupal\Core\Messenger\MessengerInterface $messenger
++   *   The messenger service.
++   */
++  public function __construct(MessengerInterface $messenger) {
++    $this->messenger = $messenger;
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  public static function create(ContainerInterface $container) {
++    return new static(
++      $container->get('messenger')
++    );
++  }
++
+   /**
+    * Save records into database.
+    *
+@@ -21,38 +50,38 @@ class MultipleSitemapDB {
+    * @return int
+    *   Ms id.
+    */
+-  public function multiple_sitemap_save_record($input = array(), $update_ms_id = NULL) {
++  public function multiple_sitemap_save_record($input = [], $update_ms_id = NULL) {
+     $ms_id = NULL;
+     $conn = \Drupal::database();
+     if (is_null($update_ms_id) && !empty($input)) {
+       // Insert new record.
+       try {
+         $ms_id = $conn->insert('multiple_sitemap')
+-          ->fields(array(
++          ->fields([
+             'file_name' => $input['file_name'],
+             'custom_links' => $input['custom_links'],
+-          ))
++          ])
+           ->execute();
+       }
+       catch (Exception $e) {
+-        drupal_set_message(t('File name already exist'), 'error');
++        $this->messenger->addMessage($this->t(('File name already exist'), $this->messenger::TYPE_ERROR));
+       }
+     }
+     else {
+       // Update record.
+       try {
+         $ms_id = $conn->update('multiple_sitemap')
+-          ->fields(array(
++          ->fields([
+             'file_name' => $input['file_name'],
+             'custom_links' => $input['custom_links'],
+-          ))
++          ])
+           ->condition('ms_id', $update_ms_id, '=')
+           ->execute();
+ 
+         $ms_id = $update_ms_id;
+       }
+       catch (Exception $e) {
+-        drupal_set_message(t('Some thing is wrong here.'), 'error');
++        $this->messenger->addMessage($this->t('Some thing is wrong here.'), $this->messenger::TYPE_ERROR);
+       }
+     }
+ 
+@@ -70,7 +99,7 @@ class MultipleSitemapDB {
+    */
+   public function multiple_sitemap_get_record($ms_id = NULL) {
+     $conn = \Drupal::database();
+-    $records = array();
++    $records = [];
+     if (!(is_null($ms_id))) {
+       $query = $conn->select('multiple_sitemap', 'ms');
+       $query->fields('ms');
+@@ -80,10 +109,10 @@ class MultipleSitemapDB {
+         $records = $result;
+       }
+ 
+-      $record_types = array('content', 'menu', 'vocab');
++      $record_types = ['content', 'menu', 'vocab'];
+       // $ms_id = db_insert('multiple_sitemap_' . $record_type)
+       foreach ($record_types as $record_type) {
+-        $subrecords = array();
++        $subrecords = [];
+         $query = $conn->select('multiple_sitemap_' . $record_type, 'ms');
+         $query->fields('ms');
+         $query->condition('target_ms_id', $ms_id, '=');
+@@ -111,7 +140,7 @@ class MultipleSitemapDB {
+    * @param array $subrecords
+    *   Having sub records.
+    */
+-  public function multiple_sitemap_save_sub_record($record_type = NULL, $ms_target_id = NULL, $subrecords = array()) {
++  public function multiple_sitemap_save_sub_record($record_type = NULL, $ms_target_id = NULL, $subrecords = []) {
+ 
+     $conn = \Drupal::database();
+ 
+@@ -119,7 +148,7 @@ class MultipleSitemapDB {
+     if (!is_null($ms_target_id) && !is_null($record_type) && !empty($subrecords)) {
+ 
+       // Record types.
+-      $record_types = array('content', 'menu', 'vocab');
++      $record_types = ['content', 'menu', 'vocab'];
+ 
+       // Check existence of record type.
+       if (in_array($record_type, $record_types)) {
+@@ -127,21 +156,21 @@ class MultipleSitemapDB {
+           // Insert each record.
+           try {
+             $conn->insert('multiple_sitemap_' . $record_type)
+-              ->fields(array(
++              ->fields([
+                 'target_ms_id' => $ms_target_id,
+                 $record_type . '_type' => $subrecord['name'],
+                 'priority' => $subrecord['priority'],
+                 'changefreq' => $subrecord['changefreq'],
+-              ))
++              ])
+               ->execute();
+           }
+           catch (Exception $e) {
+-            drupal_set_message(t('Record already exist'), 'error');
++            $this->messenger->addMessage($this->t('Record already exist.'), $this->messenger::TYPE_ERROR);
+           }
+         }
+       }
+       else {
+-        drupal_set_message(t('Recors type does not exist'), 'error');
++        $this->messenger->addMessage($this->t('Record type does not exist.'), $this->messenger::TYPE_ERROR);
+       }
+     }
+   }
+@@ -160,7 +189,7 @@ class MultipleSitemapDB {
+     if (!is_null($ms_target_id) && !is_null($record_type)) {
+ 
+       // Record types.
+-      $record_types = array('content', 'menu', 'vocab');
++      $record_types = ['content', 'menu', 'vocab'];
+ 
+       // Check existence of record type.
+       if (in_array($record_type, $record_types)) {
+@@ -171,7 +200,7 @@ class MultipleSitemapDB {
+             ->execute();
+         }
+         catch (Exception $e) {
+-          drupal_set_message(t('Record is not deleted'), 'error');
++          $this->messenger->addMessage($this->t('Record is not deleted'), $this->messenger::TYPE_ERROR);
+         }
+       }
+     }
+@@ -185,9 +214,9 @@ class MultipleSitemapDB {
+    */
+   public function multiple_sitemap_get_files_name() {
+     $conn = \Drupal::database();
+-    $records = array();
++    $records = [];
+     $query = $conn->select('multiple_sitemap', 'ms');
+-    $query->fields('ms', array('ms_id', 'file_name'));
++    $query->fields('ms', ['ms_id', 'file_name']);
+     $results = $query->execute();
+     if (!empty($results)) {
+       foreach ($results as $result) {
+@@ -207,9 +236,9 @@ class MultipleSitemapDB {
+    * @return array
+    *   Having content links.
+    */
+-  public function multiple_sitemap_get_content_links($contents = array()) {
++  public function multiple_sitemap_get_content_links($contents = []) {
+ 
+-    $content_links = array();
++    $content_links = [];
+     $conn = \Drupal::database();
+ 
+     $i = 0;
+@@ -220,7 +249,7 @@ class MultipleSitemapDB {
+ 
+         // Get the all links for given type.
+         $query = $conn->select('node', 'n');
+-        $query->fields('n', array('nid'));
++        $query->fields('n', ['nid']);
+         $query->condition('type', $type);
+ 
+         $results = $query->execute();
+@@ -251,10 +280,10 @@ class MultipleSitemapDB {
+    * @return array
+    *   Having menus links.
+    */
+-  public function multiple_sitemap_get_menu_links($menus = array()) {
++  public function multiple_sitemap_get_menu_links($menus = []) {
+     $conn = \Drupal::database();
+ 
+-    $menu_links = array();
++    $menu_links = [];
+     $i = 0;
+ 
+     if (!empty($menus)) {
+@@ -263,15 +292,15 @@ class MultipleSitemapDB {
+         $type = $menu->menu_type;
+ 
+         $query = $conn->select('menu_link_content_data', 'ml');
+-        $query->fields('ml', array('link__uri'));
++        $query->fields('ml', ['link__uri']);
+         $query->condition('menu_name', $type, '<>');
+         $query->condition('enabled', '1', '=');
+-        $query->condition('link__uri', '%' . db_like('%') . '%', 'NOT LIKE');
+-        $query->condition('link__uri', '%' . db_like('<') . '%', 'NOT LIKE');
++        $query->condition('link__uri', '%' . $conn->escapeLike('%') . '%', 'NOT LIKE');
++        $query->condition('link__uri', '%' . $conn->escapeLike('<') . '%', 'NOT LIKE');
+         $results = $query->execute();
+         if (!empty($results)) {
+           foreach ($results as $value) {
+-            $url = Url::fromUri($value->link__uri, ['absolute' => true])->toString();
++            $url = Url::fromUri($value->link__uri, ['absolute' => TRUE])->toString();
+             $link = '/' . $url;
+             $path = \Drupal::service('path.alias_manager')->getAliasByPath($link);
+             // $path = Url::fromUserInput($path)->setAbsolute()->toString();
+@@ -297,9 +326,9 @@ class MultipleSitemapDB {
+    * @return array
+    *   Having vocab links.
+    */
+-  public function multiple_sitemap_get_vocab_links($vocabs = array()) {
++  public function multiple_sitemap_get_vocab_links($vocabs = []) {
+ 
+-    $vocab_links = array();
++    $vocab_links = [];
+     $conn = \Drupal::database();
+ 
+     $i = 0;
+@@ -310,7 +339,7 @@ class MultipleSitemapDB {
+ 
+         // Get the all terms for given type.
+         $query = $conn->select('taxonomy_term_data', 't');
+-        $query->fields('t', array('tid'));
++        $query->fields('t', ['tid']);
+         $query->condition('vid', $type);
+ 
+         $results = $query->execute();
+@@ -347,9 +376,9 @@ class MultipleSitemapDB {
+     }
+ 
+     $conn = \Drupal::database();
+-    $records = array();
++    $records = [];
+     $query = $conn->select('multiple_sitemap', 'ms');
+-    $query->fields('ms', array('file_name'));
++    $query->fields('ms', ['file_name']);
+     $query->condition('ms_id', $ms_id, '=');
+     $results = $query->execute();
+     $filename = $results->fetchCol();
+@@ -364,4 +393,5 @@ class MultipleSitemapDB {
+ 
+     return FALSE;
+   }
++
+ }
+diff --git a/src/MultipleSitemapXml.php b/src/MultipleSitemapXml.php
+index e3846f3..0f660d6 100644
+--- a/src/MultipleSitemapXml.php
++++ b/src/MultipleSitemapXml.php
+@@ -1,30 +1,20 @@
+ <?php
+ 
+-/**
+- * @file
+- * Contains the function for  multiple sitemap xml files.
+- */
+-
+ namespace Drupal\multiple_sitemap;
+ 
+ use Drupal\Core\Url;
+-use Drupal\multiple_sitemap\MultipleSitemapDB;
+ 
++/**
++ *
++ */
+ class MultipleSitemapXml {
+ 
+-  private $dbObject;
+-
+-  public function __construct()
+-  {
+-     $this->dbObject = new MultipleSitemapDB();
+-  }
+-
+   /**
+    * Create xml sitemap.
+    */
+   public function multiple_sitemap_create_xml_sitemap() {
+     // Create main sitemap xml file.First we have to get all files name.
+-    $filesnames = $this->dbObject->multiple_sitemap_get_files_name();
++    $filesnames = \Drupal::service('multiple_sitemap.db')->multiple_sitemap_get_files_name();
+     $this->multiple_sitemap_create_main_file($filesnames);
+ 
+     // Create all sub files.
+@@ -39,7 +29,7 @@ class MultipleSitemapXml {
+    * @param array $filesnames
+    *   Having file names.
+    */
+-  public function multiple_sitemap_create_main_file($filesnames = array()) {
++  public function multiple_sitemap_create_main_file($filesnames = []) {
+ 
+     $dir_name = 'public://multiple_sitemap';
+     if (!file_exists($dir_name)) {
+@@ -143,12 +133,12 @@ class MultipleSitemapXml {
+   public function multiple_sitemap_get_sub_file_links($ms_id) {
+ 
+     // Get record for a file.
+-    $records = $this->dbObject->multiple_sitemap_get_record($ms_id);
++    $records = \Drupal::service('multiple_sitemap.db')->multiple_sitemap_get_record($ms_id);
+ 
+     // Get custom links.
+     $custom_links = !empty($records['custom_links']) ? $records['custom_links'] : NULL;
+ 
+-    $links = array();
++    $links = [];
+     if (!is_null($custom_links)) {
+ 
+       $custom_links = explode(',', $custom_links);
+@@ -164,16 +154,16 @@ class MultipleSitemapXml {
+     }
+ 
+     // Get content types links.
+-    $contents = !empty($records['content']) ? $records['content'] : array();
+-    $content_links = $this->dbObject->multiple_sitemap_get_content_links($contents);
++    $contents = !empty($records['content']) ? $records['content'] : [];
++    $content_links = \Drupal::service('multiple_sitemap.db')->multiple_sitemap_get_content_links($contents);
+ 
+     // Get Menus links.
+-    $menus = !empty($records['menu']) ? $records['menu'] : array();
+-    $menu_links = $this->dbObject->multiple_sitemap_get_menu_links($menus);
++    $menus = !empty($records['menu']) ? $records['menu'] : [];
++    $menu_links = \Drupal::service('multiple_sitemap.db')->multiple_sitemap_get_menu_links($menus);
+ 
+     // Get Vocab links.
+-    $vocabs = !empty($records['vocab']) ? $records['vocab'] : array();
+-    $vocab_links = $this->dbObject->multiple_sitemap_get_vocab_links($vocabs);
++    $vocabs = !empty($records['vocab']) ? $records['vocab'] : [];
++    $vocab_links = \Drupal::service('multiple_sitemap.db')->multiple_sitemap_get_vocab_links($vocabs);
+ 
+     $total_links = array_merge($links, $content_links);
+     $total_links = array_merge($total_links, $menu_links);
+@@ -181,8 +171,8 @@ class MultipleSitemapXml {
+ 
+     $total_links = array_unique($total_links, SORT_REGULAR);
+ 
+-    $usedVals = array();
+-    $outArray = array();
++    $usedVals = [];
++    $outArray = [];
+     foreach ($total_links as $arrayItem) {
+       if (!in_array($arrayItem['link'], $usedVals)) {
+         $outArray[] = $arrayItem;
+@@ -192,4 +182,5 @@ class MultipleSitemapXml {
+ 
+     return $outArray;
+   }
++
+ }

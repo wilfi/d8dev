@@ -1,0 +1,4 @@
+services:
+  multiple_sitemap.db:
+    class: Drupal\multiple_sitemap\MultipleSitemapDB
+    arguments: ['@messenger']
