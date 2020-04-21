@@ -1,0 +1,5 @@
+views_json_source.admin:
+  title: 'Views Json Source'
+  description: 'Settings of Views Json Source'
+  parent: system.admin_config_ui
+  route_name: views_json_source.settings

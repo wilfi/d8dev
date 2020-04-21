@@ -1,0 +1,9 @@
+name: 'Views Json Source'
+description: 'Adds a views backend to query Json data.'
+package: Views
+configure: views_json_source.settings
+dependencies:
+  views: 'drupal:views'
+core: 8.x
+core_version_requirement: ^8 || ^9
+type: module
