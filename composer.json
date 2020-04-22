@@ -18,6 +18,7 @@
         "drupal/core-recommended": "^8.8.0",
         "drupal/devel": "^2.0.0",
         "drupal/features": "^3.8.0",
+        "drupal/modal_page": "^2.8",
         "drupal/qa_accounts": "^1.0.0-alpha1",
         "drupal/seckit": "^1.0.0-alpha2",
         "drupal/shield": "^1.2.0"
@@ -90,7 +91,11 @@
         "patchLevel": {
             "drupal/core": "-p2"
         },
-        "patches": {}
+        "patches": {
+            "drupal/modal_page": {
+                "update entity": "patches/deprecated_remove-3098114-10.patch"
+            }
+        }
     },
     "autoload": {
         "psr-4": {

@@ -1,0 +1,52 @@
+diff --git a/modal_page.install b/modal_page.install
+index cc2e387..46903e8 100644
+--- a/modal_page.install
++++ b/modal_page.install
+@@ -41,12 +41,19 @@ function modal_page_update_8203() {
+  * Modal Page with Entities.
+  */
+ function modal_page_update_8001() {
+-  \Drupal::entityDefinitionUpdateManager()->applyUpdates();
+-  \Drupal::service('modal_page.modals')->importModalConfigToEntity();
+-
+-  $messenger = \Drupal::messenger();
+-  $messenger->addStatus(t('Thanks for use Modal Page 2'));
+-  $messenger->addStatus(t('You may create Modal by visiting: You may create Modal at: Administration » Structure » Modal'));
++  if (!\Drupal::service('database')->schema()->tableExists('modal')) {
++    \Drupal::service('entity_type.manager')->clearCachedDefinitions();
++    // Install the entity type.
++    \Drupal::service('entity.definition_update_manager')->installEntityType(\Drupal::service('entity_type.manager')->getDefinition('modal_page_modal'));
++    // Import modal data.
++    \Drupal::service('modal_page.modals')->importModalConfigToEntity();
++    $messenger = \Drupal::messenger();
++    $messenger->addStatus(t('Thanks for use Modal Page 2'));
++    $messenger->addStatus(t('You may create Modal by visiting: You may create Modal at: Administration » Structure » Modal'));
++  }
++  else {
++    return 'Entity type modal_page_modal already exists.';
++  }
+ }
+ 
+ /**
+diff --git a/src/ModalPage.php b/src/ModalPage.php
+index fa0fb71..821d9fa 100644
+--- a/src/ModalPage.php
++++ b/src/ModalPage.php
+@@ -381,7 +381,7 @@ class ModalPage {
+         $modal = [
+           'uuid' => $uuid,
+           'title' => $title,
+-          'body' => $text,
++          'body__value' => $text,
+           'type' => 'page',
+           'pages' => $path,
+           'ok_label_button' => $button,
+@@ -426,7 +426,7 @@ class ModalPage {
+         $modal = [
+           'uuid' => $uuid,
+           'title' => $title,
+-          'body' => $text,
++          'body__value' => $text,
+           'type' => 'parameter',
+           'parameters' => $parameter_value,
+           'ok_label_button' => $button,
