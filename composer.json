@@ -18,6 +18,7 @@
         "drupal/core-recommended": "^8.8.0",
         "drupal/devel": "^2.0.0",
         "drupal/features": "^3.8.0",
+        "drupal/multiple_fields_remove_button": "^1.0@alpha",
         "drupal/qa_accounts": "^1.0.0-alpha1",
         "drupal/seckit": "^1.0.0-alpha2",
         "drupal/shield": "^1.2.0"
@@ -90,7 +91,14 @@
         "patchLevel": {
             "drupal/core": "-p2"
         },
-        "patches": {}
+        "patches": {
+            "drupal/multiple_fields_remove_button": {
+                "multiple delete": "https://www.drupal.org/files/issues/2020-01-20/inline_entity_form_remove_item-3079632-6.patch"
+            },
+            "drupal/inline_entity_form": {
+                "inline entity": "https://www.drupal.org/files/issues/2020-04-21/3129760-2-compatibility-with-multiple-fields-remove-button.patch"
+            }
+        }
     },
     "autoload": {
         "psr-4": {
