@@ -1,0 +1,59 @@
+<?php
+
+/**
+ * @file
+ * Contains wil.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\node\NodeInterface;
+
+/**
+ * Implements hook_help().
+ */
+function wil_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the wil module.
+    case 'help.page.wil':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('My Awesome Module') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_hooks_example_count_incremented().
+ *
+ * Hooks can be implemented by both the module that invokes them like we are
+ * doing here, as well as by any other enabled module.
+ */
+function wil_newhooks_wil(&$current_count, NodeInterface &$node) {
+//  if ($current_count === 1) {
+//    \Drupal::messenger()
+//      ->addMessage(t('hey this it the first time %title.', [
+//        '%title' => $node
+//          ->label(),
+//      ]));
+//  }
+  $current_count++;
+}
+
+function wil_newhooks_shalin_alter(&$claim_value, array $context) {
+  $claim_value++;
+}
+
+function wil_newhooks_list_alter(&$item) {
+
+  $extas = ['9','8','7'];
+  $item = array_merge($item, $extas);
+}
+
+function wil_newhooks_list($item) {
+  if(empty($item)) {
+    $item = ['10','20','30','40'];
+  }
+  return $item;
+}

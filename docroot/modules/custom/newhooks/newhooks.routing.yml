@@ -1,0 +1,8 @@
+
+newhooks.new_hooks_controller_hello:
+  path: '/newhooks/cron'
+  defaults:
+    _controller: '\Drupal\newhooks\Controller\NewHooksController::customRunAllCrons'
+    _title: 'customRunAllCrons'
+  requirements:
+    _permission: 'access content'

@@ -1,0 +1,173 @@
+<?php
+
+/**
+ * @file
+ * Contains newhooks.module.
+ */
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\node\NodeInterface;
+use Drupal\newhooks\Event\NodeInsertDemoEvent;
+
+/**
+ * Implements hook_help().
+ */
+function newhooks_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the newhooks module.
+    case 'help.page.newhooks':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('My Awesome Module') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+function newhooks_node_postsave(EntityInterface $entity, $op) {
+//  $entity->setTitle('vvvv');
+//  $entity->save();
+//  \Drupal::messenger()->addMessage(t('wil updated'), Drupal::messenger()::TYPE_STATUS);
+//  return;
+  $wil = $op;
+//  $response = new RedirectResponse('<front>');
+//  $response->send();
+//  return;
+}
+
+
+function newhooks_node_view(array &$build, EntityInterface $entity, EntityViewDisplayInterface $display, $view_mode) {
+
+  //
+  // Retrieve the active session from the current request object.
+  $session = \Drupal::request()->getSession();
+  $current_counts = $session
+    ->get('hooks_example.view_counts', []);
+  if (!isset($current_counts[$entity
+      ->id()])) {
+
+    // If this is the first time they've viewed the page we need to start the
+    // counter.
+    $current_counts[$entity->id()] = 1;
+  }
+  else {
+
+    // If they have already viewed this page just increment the existing
+    // counter.
+    $current_counts[$entity->id()]++;
+  }
+
+  // Save the updated values.
+  $session->set('hooks_example.view_counts', $current_counts);
+
+  // Invoke a hook to alert other modules that the count was updated.
+  //
+  // Hooks are invoked via the `module_handler` service. Which is an instance of
+  // \Drupal\Core\Extension\ModuleHandlerInterface.
+  //
+  // Hooks can be invoked in a few different ways:
+  // - All at once using ModuleHandlerInterface::invokeAll() to call all
+  //   implementations of the specified hook provided by any enabled module.
+  // - One at a time using ModuleHandlerInterface::invoke() to call only the
+  //   the specified module's implementation of a hook.
+  // - Using ModuleHandlerInterface::alter() to pass alterable variables to
+  //   hook_TYPE_alter() implementations for all enabled modules. This method
+  //   should be used for instances where the calling module has assembled data
+  //   and would like to give other modules an opportunity to alter that data
+  //   before it's used. A common pattern is to use invokeAll() to first gather
+  //   input from other modules, the immediately afterwards call alter() to give
+  //   modules the opportunity to alter the aggregate data.
+  $module_handler = \Drupal::moduleHandler();
+
+  // Calling \Drupal\Core\Extension\ModuleHandlerInterface::invokeAll() will
+  // call implementations of the hook in question for all enabled modules. The
+  // method takes two arguments. The name of the hook to invoke, and an optional
+  // array of arguments to pass to any functions implementing the hook.
+  //
+  // Hook names need to be unique. So when defining a new hook in your module it
+  // is customary to prefix the hook name with the short name of your module
+  // followed by the descriptive name of the hook itself. Because hooks names
+  // are also PHP function names they should contain only lowercase alphanumeric
+  // characters and underscores.
+  //
+  // The hook name parameter should have the "hook_" prefix removed. So if you
+  // want to invoke hook_mymodule_do_something() the value used here would be
+  // 'mymodule_do_something'.
+  //
+  // Hook implementations can optionally return a value, depending on the hook
+  // definition. If they do, the invokeAll() method aggregates the responses
+  // from all hooks in an array and returns the array.
+  //
+  // In this example we're invoking hook_hooks_example_count_incremented() and
+  // passing all implementations the current view count for the node, and the
+  // node object itself.
+  $module_handler->invokeAll('newhooks_wil', [&$current_counts[$entity->id()], &$entity,]);
+  $claim_value = 0;
+
+  $context = [
+    'claim' => 'claim_val',
+    'property_name' => 'property_name',
+    'property_type' => 'property_type',
+    'userinfo' => 'user_info',
+    'userinfo_mappings' => 'mappings',
+  ];
+  $module_handler->alter('newhooks_shalin', $claim_value, $context);
+
+
+  $list = $module_handler->invokeAll('newhooks_list', [array()]);
+  $module_handler->alter('newhooks_list', $list);
+
+
+  // Display the current number of pages the user has viewed along with the
+  // node's content.
+  $build['view_count'] = [
+    '#markup' => '<p>' . t('You have viewed this node @total times this session.And the claim value is @claim', [
+        '@total' => $current_counts[$entity->id()],
+        '@claim' => $claim_value,
+      ]) . '</p>',
+    // In order for this example to work we disable caching for the content of
+    // this node completely. This ensures that our hook is called every time the
+    // node is viewed instead of using a cached version of the page for
+    // subsequent requests.
+    '#cache' => [
+      'max-age' => 0,
+    ],
+  ];
+}
+
+/**
+ * Implements hook_hooks_example_count_incremented().
+ *
+ * Hooks can be implemented by both the module that invokes them like we are
+ * doing here, as well as by any other enabled module.
+ */
+function newhooks_newhooks_wil(&$current_count, NodeInterface &$node) {
+  if ($current_count === 1) {
+    \Drupal::messenger()
+      ->addMessage(t('This is the first time you have viewed the node %title.', [
+        '%title' => $node
+          ->label(),
+      ]));
+  }
+  $current_count++;
+}
+
+function newhooks_newhooks_list($item) {
+  if(empty($item)) {
+    $item = ['1','2','3','4'];
+  }
+  return $item;
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_insert().
+ */
+function newhooks_node_insert(Drupal\Core\Entity\EntityInterface $entity) {
+  // Dispatch the node insert demo event so that subscribers can act accordingly.
+  \Drupal::service('event_dispatcher')->dispatch(NodeInsertDemoEvent::DEMO_NODE_INSERT, new NodeInsertDemoEvent($entity));
+}
