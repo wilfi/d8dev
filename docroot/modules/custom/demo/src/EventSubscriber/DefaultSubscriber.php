@@ -1,9 +1,9 @@
 <?php
 
-namespace Drupal\newhooks\EventSubscriber;
+namespace Drupal\demo\EventSubscriber;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Drupal\newhooks\Event\NodeInsertDemoEvent;
+use Drupal\demo\Event\NodeInsertDemoEvent;
 
 /**
  * Class DefaultSubscriber.

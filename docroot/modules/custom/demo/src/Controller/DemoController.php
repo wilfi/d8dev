@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\newhooks\Controller;
+namespace Drupal\demo\Controller;
 
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -9,7 +9,7 @@ use Drupal\Core\Extension\ModuleHandlerInterface;
 use Psr\Log\LoggerInterface;
 
 
-class NewHooksController implements ContainerInjectionInterface {
+class DemoController implements ContainerInjectionInterface {
 
   /**
    * The module handler.

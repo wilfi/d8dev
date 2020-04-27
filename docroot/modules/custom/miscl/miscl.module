@@ -1,0 +1,48 @@
+<?php
+
+/**
+ * @file
+ * Contains miscl.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function miscl_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the miscl module.
+    case 'help.page.miscl':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('My Awesome Module') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_demo_example_alter().
+ */
+function miscl_demo_example_alter(&$items) {
+  $extras = ['1','2','3'];
+  $items = array_merge($items, $extras);
+}
+
+/**
+ * Implements hook_demo_list_alter().
+ */
+function miscl_demo_list_alter(&$items) {
+  $extas = ['9','8','7'];
+  $items = array_merge($items, $extas);
+}
+
+/**
+ * Implements hook_demo_list().
+ */
+function miscl_demo_list($items) {
+  $items = ['10','20','30','40'];
+  return $items;
+}

@@ -1,6 +1,0 @@
-services:
-  newhooks.default:
-    class: Drupal\newhooks\EventSubscriber\DefaultSubscriber
-    arguments: []
-    tags:
-      - { name: event_subscriber }

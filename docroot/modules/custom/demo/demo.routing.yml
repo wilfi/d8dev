@@ -1,0 +1,7 @@
+demo.demo_controller_hello:
+  path: '/demo/cron'
+  defaults:
+    _controller: '\Drupal\demo\Controller\DemoController::customRunAllCrons'
+    _title: 'customRunAllCrons'
+  requirements:
+    _permission: 'access content'

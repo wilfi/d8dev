@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\newhooks\Event;
+namespace Drupal\demo\Event;
 
 use Symfony\Component\EventDispatcher\Event;
 use Drupal\Core\Entity\EntityInterface;

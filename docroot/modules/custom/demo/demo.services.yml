@@ -1,0 +1,6 @@
+services:
+  demo.default:
+    class: Drupal\demo\EventSubscriber\DefaultSubscriber
+    arguments: []
+    tags:
+      - { name: event_subscriber }

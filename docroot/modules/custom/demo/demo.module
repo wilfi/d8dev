@@ -1,0 +1,114 @@
+<?php
+
+/**
+ * @file
+ * Contains demo.module.
+ */
+
+use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\demo\Event\NodeInsertDemoEvent;
+use Drupal\node\NodeInterface;
+
+/**
+ * Implements hook_help().
+ */
+function demo_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the demo module.
+    case 'help.page.demo':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('My Awesome Module') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+function demo_node_view(array &$build, EntityInterface $entity, EntityViewDisplayInterface $display, $view_mode) {
+  $session = \Drupal::request()->getSession();
+  $current_counts = $session
+    ->get('hooks_example.view_counts', []);
+  if (!isset($current_counts[$entity
+      ->id()])) {
+    $current_counts[$entity->id()] = 1;
+  }
+  else {
+    $current_counts[$entity->id()]++;
+  }
+
+  // Save the updated values.
+  $session->set('hooks_example.view_counts', $current_counts);
+
+  $items = ['-1','-2','-3'];
+  $module_handler = \Drupal::moduleHandler();
+
+  // Example invokeall.
+  $module_handler->invokeAll('demo_node_viewcount', [$current_counts[$entity->id()], $entity,]);
+
+  // Example alter.
+//   $module_handler->alter('demo_example', $items);
+//
+//  // Example invoke & alter.
+//  $items = $module_handler->invokeAll('demo_list', [$items]);
+//  $module_handler->alter('demo_list', $items);
+
+
+  $build['item_list'] = [
+    '#theme' => 'item_list',
+    '#cache' => [
+      'max-age' => 0,
+    ],
+    '#title' => t('You have viewed this node @total times this session.', [
+      '@total' => $current_counts[$entity->id()],
+    ]),
+    '#items' => $items,
+  ];
+
+}
+
+/**
+ * Implements hook_theme().
+ */
+function demo_theme() {
+  $theme['item_list'] = [
+    'variables' => [
+      'items' => [],
+      'title' => '',
+    ],
+    'template' => 'item-list',
+  ];
+  return $theme;
+}
+
+/**
+ * Implements hook_demo_node_viewcount().
+ */
+function demo_demo_node_viewcount($current_count, NodeInterface $node) {
+  if ($current_count === 1) {
+    \Drupal::messenger()
+      ->addMessage(t('This is the first time you have viewed the node %title.', [
+        '%title' => $node
+          ->label(),
+      ]));
+  }
+}
+
+/**
+ * Implements hook_demo_list().
+ */
+function demo_demo_list($items) {
+  $extras = ['4','5','6'];
+  $items = array_merge($items, $extras);
+  return $items;
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_insert().
+ */
+function demo_node_insert(Drupal\Core\Entity\EntityInterface $entity) {
+  // Dispatch the node insert demo event so that subscribers can act accordingly.
+  \Drupal::service('event_dispatcher')->dispatch(NodeInsertDemoEvent::DEMO_NODE_INSERT, new NodeInsertDemoEvent($entity));
+}
