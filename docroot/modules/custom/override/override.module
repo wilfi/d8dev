@@ -24,7 +24,6 @@ function override_help($route_name, RouteMatchInterface $route_match) {
 }
 
 function override_link_alter(&$variables) {
-  //$res = Drupal::service('override.calc_fibo')->calcSomeFibos(10);
 }
 
 function override_theme($existing, $type, $theme, $path) {

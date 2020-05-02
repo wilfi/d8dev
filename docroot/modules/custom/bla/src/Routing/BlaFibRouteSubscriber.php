@@ -16,6 +16,7 @@ class BlaFibRouteSubscriber extends RouteSubscriberBase {
    * {@inheritdoc}
    */
   protected function alterRoutes(RouteCollection $collection) {
+    // Alter fib route.
     $routes = [
       $collection->get('override.fibonacci_controller'),
     ];
@@ -24,6 +25,7 @@ class BlaFibRouteSubscriber extends RouteSubscriberBase {
       $route->setDefault('num', 5);
     }
 
+    // Alter user route.
     $user_pages = [
       $collection->get('user.page'),
     ];
@@ -31,6 +33,7 @@ class BlaFibRouteSubscriber extends RouteSubscriberBase {
       $user_route->setPath('/bla');
     }
 
+    // Alter user login route.
     $user_logins = [
       $collection->get('user.login'),
     ];
@@ -38,6 +41,7 @@ class BlaFibRouteSubscriber extends RouteSubscriberBase {
       $user_login->setPath('/bla/login');
     }
 
+    // Alter site settings route.
     $routes = [
       $collection->get('system.site_information_settings'),
     ];
