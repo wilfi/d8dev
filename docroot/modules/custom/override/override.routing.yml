@@ -1,0 +1,9 @@
+
+override.fibonacci_controller:
+  path: '/override/fib/{num}'
+  defaults:
+    _controller: '\Drupal\override\Controller\FibonacciController::build'
+    num: '2'
+    _title: 'Fibonacci series'
+  requirements:
+    _permission: 'access content'

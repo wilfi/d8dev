@@ -1,0 +1,36 @@
+<?php
+
+/**
+ * @file
+ * Contains override.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function override_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the override module.
+    case 'help.page.override':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('My Awesome Module') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+function override_link_alter(&$variables) {
+  //$res = Drupal::service('override.calc_fibo')->calcSomeFibos(10);
+}
+
+function override_theme($existing, $type, $theme, $path) {
+  return [
+    'fib_template' => [
+      'variables' => ['series' => []],
+    ],
+  ];
+}

@@ -1,0 +1,5 @@
+services:
+  bla.fib_route_subscriber:
+    class: Drupal\bla\Routing\BlaFibRouteSubscriber
+    tags:
+      - { name: event_subscriber }
