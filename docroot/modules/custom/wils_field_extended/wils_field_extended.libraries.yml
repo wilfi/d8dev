@@ -1,0 +1,4 @@
+wil_multiple.admin:
+  css:
+    theme:
+      css/wil_multiple.admin.css: {}

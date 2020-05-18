@@ -18,6 +18,7 @@
         "drupal/core-recommended": "^8.8.0",
         "drupal/devel": "^2.0.0",
         "drupal/features": "^3.8.0",
+        "drupal/field_validation": "^1.0@alpha",
         "drupal/hook_post_action": "^1.0",
         "drupal/openid_connect": "^1.0@beta",
         "drupal/qa_accounts": "^1.0.0-alpha1",
@@ -26,7 +27,8 @@
     },
     "require-dev": {
         "acquia/blt-require-dev": "11.x-dev",
-        "geerlingguy/drupal-vm": "~5.0"
+        "geerlingguy/drupal-vm": "~5.0",
+        "symfony/phpunit-bridge": "*"
     },
     "config": {
         "platform": {

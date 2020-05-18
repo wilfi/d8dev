@@ -1,0 +1,220 @@
+<?php
+
+/**
+ * @file
+ * Contains wils_field_extended.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function wils_field_extended_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the wils_field_extended module.
+    case 'help.page.wils_field_extended':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('My Awesome Module') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function wils_field_extended_theme() {
+  return [
+    'wils_field_extended' => [
+      'render element' => 'children',
+    ],
+  ];
+}
+
+/**
+ * Returns default field instance settings for wil_multiple.
+ *
+ * @return array
+ *   An array of instance settings.
+ */
+function wils_field_extended_field_instance_default_settings() {
+  // Disabled by default.
+  return array(
+      'enabled' => FALSE,
+      'exclude_extra_item' => TRUE,
+      'min_required' => NULL,
+      'max_allowed' => NULL,
+  );
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function wils_field_extended_form_field_storage_config_edit_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+
+
+
+  $settings_values = array();
+  if (!empty($form['settings']['wil_multiple'])) {
+    $settings_values = $form['settings']['wil_multiple'];
+  }
+
+    $fieldStorageConfig = $form_state->getFormObject()->getEntity();
+  $settings_form = _wils_field_extended_field_instance_settings_form($settings_values, $fieldStorageConfig);
+
+  if(!empty($settings_form)) {
+    $supported = 1; //hardcoded for now.
+    $form['settings']['wil_multiple'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Field Multiple Extended'),
+        '#collapsible' => TRUE,
+        '#collapsed' => !$supported,
+        '#weight' => 50,
+    );
+
+    // Enable only if cardinality is unlimited.
+    $form['settings']['wil_multiple']['#states'] = [
+        'visible' => [
+            ':input[name="cardinality"]' => [
+                'value' => -1,
+            ],
+        ],
+    ];
+
+      $form['#attached']['library'][] = 'wils_field_extended/wil_multiple.admin';
+
+    // Append settings form to the fieldset.
+    $form['settings']['wil_multiple'] += $settings_form;
+    $form['#entity_builders'][] = '_wils_field_extended_form_field_storage_submit';
+  }
+
+}
+
+/**
+ * Entity builder for the menu configuration entity.
+ */
+function _wils_field_extended_form_field_storage_submit($entity_type, Drupal\field\Entity\FieldStorageConfig $fieldStorageConfig, &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
+
+    if ($form_state->getValue('settings')['wil_multiple']['enabled']) {
+        $fieldStorageConfig->setThirdPartySetting('wils_field_extended', 'enabled', $form_state->getValue('settings')['wil_multiple']['enabled']);
+        $fieldStorageConfig->setThirdPartySetting('wils_field_extended', 'exclude_extra_item', $form_state->getValue('settings')['wil_multiple']['exclude_extra_item']);
+        $fieldStorageConfig->setThirdPartySetting('wils_field_extended', 'min_required', $form_state->getValue('settings')['wil_multiple']['min_required']);
+        $fieldStorageConfig->setThirdPartySetting('wils_field_extended', 'max_allowed', $form_state->getValue('settings')['wil_multiple']['max_allowed']);
+    } else {
+        $fieldStorageConfig->unsetThirdPartySetting('wils_field_extended', 'enabled');
+        $fieldStorageConfig->unsetThirdPartySetting('wils_field_extended', 'exclude_extra_item');
+        $fieldStorageConfig->unsetThirdPartySetting('wils_field_extended', 'min_required');
+        $fieldStorageConfig->unsetThirdPartySetting('wils_field_extended', 'max_allowed');
+    }
+    return true;
+}
+
+/**
+ * Common form used for field instance settings.
+ *
+ * @param array $values
+ *   The current settings values.
+ *
+ * @return array
+ *   The settings form array.
+ */
+function _wils_field_extended_field_instance_settings_form(array $values = array(), Drupal\field\Entity\FieldStorageConfig $fieldStorageConfig) {
+
+  $values += wils_field_extended_field_instance_default_settings();
+
+  $form = array();
+  $form['enabled'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Enable Field Multiple Extended'),
+      '#description' => t('If enabled then this module will alter the field multiple value form.'),
+      '#default_value' => $fieldStorageConfig->getThirdPartySetting('wils_field_extended', 'enabled'),
+      '#attributes' => array(
+          'class' => array('field-multiple-extended-form-item-enabled'),
+      ),
+  );
+
+  $form['exclude_extra_item'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Exclude the extra empty item'),
+      '#description' => t('By default in Drupal, an unlimited field has an extra field item form displayed. This is not ideal when using large field collection fields.'),
+      '#default_value' => $fieldStorageConfig->getThirdPartySetting('wils_field_extended', 'exclude_extra_item'),
+      '#prefix' => '<div class="field-multiple-extended-form-item-indented">',
+      '#suffix' => '</div>',
+      '#states' => array(
+          'visible' => array(
+              ':input.field-multiple-extended-form-item-enabled' => array(
+                  'checked' => TRUE,
+              ),
+          ),
+      ),
+  );
+
+  $form['min_required'] = array(
+      '#type' => 'number',
+      '#title' => t('Minimum required items'),
+      '#description' => t('Enter the minimum number of items that are required to be completed. By default in Drupal, a required field requires only 1 item to be completed. This setting adds a minimum number of items required that have to be completed for a required or optional field. Optional fields can be either empty or have the minimum number of items. Example: Minimum of 2 cards.'),
+      '#default_value' => $fieldStorageConfig->getThirdPartySetting('wils_field_extended', 'min_required'),
+      '#size' => 5,
+      '#prefix' => '<div class="field-multiple-extended-form-item-indented">',
+      '#suffix' => '</div>',
+      '#states' => array(
+          'visible' => array(
+              ':input.field-multiple-extended-form-item-enabled' => array(
+                  'checked' => TRUE,
+              ),
+          ),
+      ),
+  );
+
+  $form['max_allowed'] = array(
+      '#type' => 'number',
+      '#title' => t('Maximum allowed items'),
+      '#description' => t('Enter the maximum number of items that are allowed. Example: Maximum of 10 cards. This setting can be changed per field instance since the field must be unlimited. If a field was stored with more items than the max allowed, then the items will be flagged as errors on the edit form only.'),
+      '#default_value' => $fieldStorageConfig->getThirdPartySetting('wils_field_extended', 'max_allowed'),
+      '#size' => 5,
+      '#prefix' => '<div class="field-multiple-extended-form-item-indented">',
+      '#suffix' => '</div>',
+      '#states' => array(
+          'visible' => array(
+              ':input.field-multiple-extended-form-item-enabled' => array(
+                  'checked' => TRUE,
+              ),
+          ),
+      ),
+  );
+
+//  $form['#element_validate'][] = '_wil_multiple_field_instance_settings_form_validate';
+
+
+  return $form;
+}
+
+function wils_field_extended_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+
+  if ($form_state->getFormObject() instanceof \Drupal\Core\Entity\EntityFormInterface) {
+    $entity_type = $form_state->getFormObject()->getEntity()->getEntityTypeId();
+  }
+
+  $f = $form;
+  $fs = $form_state;
+
+  if (isset($form['type']) && $form['type']['#value'] . '_node_settings' == $form_id) {
+    $upload_enabled_types = \Drupal::config('mymodule.settings')
+      ->get('upload_enabled_types');
+    $form['workflow']['upload_' . $form['type']['#value']] = array(
+      '#type' => 'radios',
+      '#title' => t('Attachments'),
+      '#default_value' => in_array($form['type']['#value'], $upload_enabled_types) ? 1 : 0,
+      '#options' => array(
+        t('Disabled'),
+        t('Enabled'),
+      ),
+    );
+
+    // Add a custom submit handler to save the array of types back to the config file.
+    $form['actions']['submit']['#submit'][] = 'mymodule_upload_enabled_types_submit';
+  }
+}
