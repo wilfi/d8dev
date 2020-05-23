@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8bd506f28c29c26b971d6e1f824d99c1",
+    "content-hash": "766dd47972d70e3fb297a5b727654cba",
     "packages": [
         {
             "name": "acquia/blt",
@@ -5940,17 +5940,11 @@
         },
         {
             "name": "drupal/legacy_redirect",
-            "version": "1.21.0",
+            "version": "dev-1.x",
             "source": {
                 "type": "git",
                 "url": "https://git.drupalcode.org/project/legacy_redirect.git",
-                "reference": "8.x-1.21"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://ftp.drupal.org/files/projects/legacy_redirect-8.x-1.21.zip",
-                "reference": "8.x-1.21",
-                "shasum": "8c0d64921975f73359b0700b141a26c8dd7d87dd"
+                "reference": "c968501444bb6d9f02343d57989d2916f92e0132"
             },
             "require": {
                 "drupal/core": "~8.0"
@@ -5961,12 +5955,15 @@
                     "dev-1.x": "1.x-dev"
                 },
                 "drupal": {
-                    "version": "8.x-1.21",
-                    "datestamp": "1494523985",
+                    "version": "8.x-1.2+3-dev",
+                    "datestamp": "1494523685",
                     "security-coverage": {
-                        "status": "covered",
-                        "message": "Covered by Drupal's security advisory policy"
+                        "status": "not-covered",
+                        "message": "Dev releases are not covered by Drupal security advisories."
                     }
+                },
+                "patches_applied": {
+                    "deprecated codes": "https://www.drupal.org/files/issues/2020-05-23/deprecated-3139117-3.patch"
                 }
             },
             "notification-url": "https://packages.drupal.org/8/downloads",
@@ -5995,7 +5992,8 @@
                 "source": "https://cgit.drupalcode.org/legacy_redirect",
                 "issues": "https://drupal.org/project/issues/legacy_redirect",
                 "irc": "irc://irc.freenode.org/drupal-contribute"
-            }
+            },
+            "time": "2017-05-11T17:25:45+00:00"
         },
         {
             "name": "drupal/libraries",
@@ -12777,6 +12775,71 @@
             "time": "2019-11-13T08:44:50+00:00"
         },
         {
+            "name": "symfony/phpunit-bridge",
+            "version": "v5.0.8",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/phpunit-bridge.git",
+                "reference": "00b8da18a52fa842b7a39613fb0a63720a354e74"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/phpunit-bridge/zipball/00b8da18a52fa842b7a39613fb0a63720a354e74",
+                "reference": "00b8da18a52fa842b7a39613fb0a63720a354e74",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.5.9"
+            },
+            "conflict": {
+                "phpunit/phpunit": "<4.8.35|<5.4.3,>=5.0|<6.4,>=6.0|9.1.2"
+            },
+            "suggest": {
+                "symfony/error-handler": "For tracking deprecated interfaces usages at runtime with DebugClassLoader"
+            },
+            "bin": [
+                "bin/simple-phpunit"
+            ],
+            "type": "symfony-bridge",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "5.0-dev"
+                },
+                "thanks": {
+                    "name": "phpunit/phpunit",
+                    "url": "https://github.com/sebastianbergmann/phpunit"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ],
+                "psr-4": {
+                    "Symfony\\Bridge\\PhpUnit\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony PHPUnit Bridge",
+            "homepage": "https://symfony.com",
+            "time": "2020-04-28T17:58:55+00:00"
+        },
+        {
             "name": "symfony/polyfill-ctype",
             "version": "v1.12.0",
             "source": {
@@ -15937,6 +16000,7 @@
     "minimum-stability": "dev",
     "stability-flags": {
         "acquia/lightning": 20,
+        "drupal/legacy_redirect": 20,
         "drupal/openid_connect": 10,
         "acquia/blt-require-dev": 20
     },

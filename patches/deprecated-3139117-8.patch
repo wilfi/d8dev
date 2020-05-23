@@ -1,0 +1,116 @@
+diff --git a/legacy_redirect.info.yml b/legacy_redirect.info.yml
+index 035885d..b9772f6 100644
+--- a/legacy_redirect.info.yml
++++ b/legacy_redirect.info.yml
+@@ -1,5 +1,5 @@
+ name: Legacy Redirect
+ description: 'Redirects deprecated q=path requests to their newer equivalents.'
+-
+ type: module
+ core: 8.x
++core_version_requirement: ^8 || ^9
+diff --git a/legacy_redirect.module b/legacy_redirect.module
+index 5685395..1be0e50 100644
+--- a/legacy_redirect.module
++++ b/legacy_redirect.module
+@@ -5,7 +5,7 @@
+  * Redirects deprecated q=path requests to their newer equivalents.
+  */
+ 
+-use \Drupal\Core\Routing\RouteMatchInterface;
++use Drupal\Core\Routing\RouteMatchInterface;
+ 
+ /**
+  * Implements hook_help().
+diff --git a/legacy_redirect.services.yml b/legacy_redirect.services.yml
+index b99988c..4cbc09d 100644
+--- a/legacy_redirect.services.yml
++++ b/legacy_redirect.services.yml
+@@ -2,4 +2,4 @@ services:
+   legacy_redirect_event_subscriber:
+     class: Drupal\legacy_redirect\EventSubscriber\LegacyRedirectSubscriber
+     tags:
+-      - {name: event_subscriber}
+\ No newline at end of file
++      - {name: event_subscriber}
+diff --git a/src/EventSubscriber/LegacyRedirectSubscriber.php b/src/EventSubscriber/LegacyRedirectSubscriber.php
+index dab86e1..7fdd120 100644
+--- a/src/EventSubscriber/LegacyRedirectSubscriber.php
++++ b/src/EventSubscriber/LegacyRedirectSubscriber.php
+@@ -40,7 +40,7 @@ class LegacyRedirectSubscriber implements EventSubscriberInterface {
+   /**
+    * {@inheritdoc}
+    */
+-  static function getSubscribedEvents() {
++  public static function getSubscribedEvents() {
+     // Run earlier than all the listeners in
+     // Drupal\Core\EventSubscriber\PathSubscriber, because there is no need
+     // to decode the incoming path, resolve language, etc. if the real path
+@@ -48,4 +48,5 @@ class LegacyRedirectSubscriber implements EventSubscriberInterface {
+     $events[KernelEvents::REQUEST][] = ['onKernelLegacyRedirect', 500];
+     return $events;
+   }
++
+ }
+diff --git a/src/Tests/LegacyRedirectTest.php b/tests/src/Functional/LegacyRedirectTest.php
+similarity index 66%
+rename from src/Tests/LegacyRedirectTest.php
+rename to tests/src/Functional/LegacyRedirectTest.php
+index 3741663..6b2ffc5 100644
+--- a/src/Tests/LegacyRedirectTest.php
++++ b/tests/src/Functional/LegacyRedirectTest.php
+@@ -1,10 +1,15 @@
+ <?php
+ 
+-namespace Drupal\legacy_redirect\Tests;
++namespace Drupal\Tests\legacy_redirect\Functional;
+ 
+-use Drupal\simpletest\WebTestBase;
++use Drupal\Tests\BrowserTestBase;
+ 
+-class LegacyRedirectTest extends WebTestBase {
++/**
++ * Tests a request is redirected.
++ *
++ * @group legacy_redirect
++ */
++class LegacyRedirectTest extends BrowserTestBase {
+ 
+   /**
+    * Modules to enable.
+@@ -13,27 +18,32 @@ class LegacyRedirectTest extends WebTestBase {
+    */
+   public static $modules = ['legacy_redirect'];
+ 
++  /**
++   * Get information about the test.
++   */
+   public static function getInfo() {
+     return [
+       'name' => 'Legacy Redirects',
+       'description' => 'Test that q=path/to/page requests are properly redirected.',
+-      'group' => 'Legacy Redirect'
++      'group' => 'Legacy Redirect',
+     ];
+   }
+ 
+   /**
+    * Test that a request to a q=path/to/page properly redirects.
+    */
+-  function testLegacyRedirects() {
++  public function testLegacyRedirects() {
+     global $base_url;
+ 
+     // Test with q as sole query parameter.
+     $this->drupalGet(NULL, ['query' => ['q' => 'user/register']]);
+     $this->assertEqual($base_url . '/index.php/user/register', $this->getAbsoluteUrl($this->getUrl()));
+-    $this->assertText(t('Create new account'), 'The request was successfully redirected to the user registration page.');
++    $this->assertText('Create new account');
+ 
+     // Test with additional query parameters.
+     $this->drupalGet(NULL, ['query' => ['q' => 'user/register', 'a' => 'b']]);
+     $this->assertEqual($base_url . '/index.php/user/register?a=b', $this->getAbsoluteUrl($this->getUrl()));
++    $this->assertText('Create new account');
+   }
++
+ }
