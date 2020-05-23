@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "766dd47972d70e3fb297a5b727654cba",
+    "content-hash": "114f89fe6aaaceba8235e09319ea4122",
     "packages": [
         {
             "name": "acquia/blt",
@@ -5963,7 +5963,7 @@
                     }
                 },
                 "patches_applied": {
-                    "deprecated codes": "https://www.drupal.org/files/issues/2020-05-23/deprecated-3139117-3.patch"
+                    "deprecated codes": "https://www.drupal.org/files/issues/2020-05-23/deprecated-3139117-8.patch"
                 }
             },
             "notification-url": "https://packages.drupal.org/8/downloads",
