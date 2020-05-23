@@ -1,0 +1,21 @@
+diff --git a/src/Tests/LegacyRedirectTest.php b/tests/src/Functional/LegacyRedirectTest.php
+similarity index 88%
+rename from src/Tests/LegacyRedirectTest.php
+rename to tests/src/Functional/LegacyRedirectTest.php
+index 3741663..787e04b 100644
+--- a/src/Tests/LegacyRedirectTest.php
++++ b/tests/src/Functional/LegacyRedirectTest.php
+@@ -1,10 +1,10 @@
+ <?php
+ 
+-namespace Drupal\legacy_redirect\Tests;
++namespace Drupal\Tests\legacy_redirect\Functional;
+ 
+-use Drupal\simpletest\WebTestBase;
++use Drupal\Tests\BrowserTestBase;
+ 
+-class LegacyRedirectTest extends WebTestBase {
++class LegacyRedirectTest extends BrowserTestBase {
+ 
+   /**
+    * Modules to enable.
