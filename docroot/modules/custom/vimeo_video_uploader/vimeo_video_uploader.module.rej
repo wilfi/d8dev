@@ -1,0 +1,118 @@
+--- vimeo_video_uploader.module
++++ vimeo_video_uploader.module
+@@ -5,21 +5,16 @@
+  * Module file for the Vimeo Video Uploader.
+  */
+ 
+-$basepath = getcwd();
+-if(!is_dir( getcwd().'/vendor/')){
+-    $basepath_in_array = explode('/',getcwd());
+-    $basepath = implode('/',array_slice($basepath_in_array,0,count($basepath_in_array)-1));
+-}
+-
+-$vendor_path = $basepath .'/vendor/autoload.php';
+-include_once($vendor_path);
++$vendor_path = str_replace('modules/', '', dirname(dirname(__DIR__)) . '/vendor/autoload.php');
++include_once $vendor_path;
+ 
+-use Drupal\node\NodeInterface;
+-use Drupal\Core\Entity\EntityInterface;
++use Drupal\Core\Entity\EntityStorageInterface;
+ use Vimeo\Vimeo;
+ use Vimeo\Exceptions\VimeoUploadException;
+ use Symfony\Component\HttpFoundation\RedirectResponse;
+ use Drupal\Core\Form\FormStateInterface;
++use Drupal\Core\Entity\EntityInterface;
++use Drupal\node\NodeInterface;
+ 
+ /**
+  * Implements hook_help().
+@@ -58,14 +53,14 @@ function vimeo_video_uploader_node_presave(EntityInterface $node) {
+   if (!empty($node->field_vimeo_file_browse)) {
+     $field_embeddedvideo = $node->get('field_embeddedvideo')->value;
+     $video_title = $node->get('title')->value;
+-    // $video_desc = $node->get('body')->value;.
++    $video_desc = $node->get('body')->value;
+     $field_vimeo_file_browse = $node->get('field_vimeo_file_browse')->getValue();
+ 
+     if ($node->bundle() == $content_type && empty($node->id()) && !empty($field_vimeo_file_browse)) {
+       try {
+         $file_uri = $node->get('field_vimeo_file_browse')->entity->uri->value;
+         $video_id_link = $lib->upload(\Drupal::service('file_system')->realpath($file_uri), ['name' => 'untitled', 'privacy' => ['view' => 'anybody']]);
+-        // #video id sample /videos/255895935.
++        // #video id sample /videos/255895935
+         $video_id = explode('/', $video_id_link);
+         $video_id = end($video_id);
+         if (!empty($video_id)) {
+@@ -73,11 +68,12 @@ function vimeo_video_uploader_node_presave(EntityInterface $node) {
+           $video_url = 'http://vimeo.com/' . $video_id;
+           $node->field_embeddedvideo->value = $video_url;
+         }
+-        file_delete($field_vimeo_file_browse[0]['target_id']);
++
++        EntityStorageInterface::delete($field_vimeo_file_browse[0]['target_id']);
+       }
+       catch (VimeoUploadException $e) {
+         $error_message = $e->getMessage();
+-        drupal_set_message(t('Not Authorized...! %string', ['%string' => $error_message]), 'error');
++        \Drupal::messenger()->addError($this->t('Not Authorized...!%error_message', ['%error_message' => $error_message]));
+         return;
+       }
+     }
+@@ -93,12 +89,12 @@ function vimeo_video_uploader_node_presave(EntityInterface $node) {
+           $lib->request('/videos/' . $video_id, ['name' => $video_title], 'PATCH');
+           $video_url = 'http://vimeo.com/' . $video_id;
+           $node->field_embeddedvideo->value = $video_url;
+-          file_delete($field_vimeo_file_browse[0]['target_id']);
++          EntityStorageInterface::delete($field_vimeo_file_browse[0]['target_id']);
+         }
+       }
+       catch (VimeoUploadException $e) {
+         $error_message = $e->getMessage();
+-        drupal_set_message(t('Not Authorized...! %string', ['%string' => $error_message]), 'error');
++        \Drupal::messenger()->addError($this->t('Not Authorized...!%error_message', ['%error_message' => $error_message]));
+         return;
+       }
+     }
+@@ -111,7 +107,7 @@ function vimeo_video_uploader_node_presave(EntityInterface $node) {
+       }
+       catch (VimeoUploadException $e) {
+         $error_message = $e->getMessage();
+-        drupal_set_message(t('Not Authorized...! %string', ['%string' => $error_message]), 'error');
++        \Drupal::messenger()->addError($this->t('Not Authorized...!%error_message', ['%error_message' => $error_message]));
+         return;
+       }
+     }
+@@ -142,7 +138,7 @@ function vimeo_video_uploader_node_delete($node) {
+       catch (VimeoUploadException $e) {
+         redirect_path('admin/content');
+         $error_message = $e->getMessage();
+-        drupal_set_message(t('Not Authorized...! %string', ['%string' => $error_message]), 'error');
++        \Drupal::messenger()->addError($this->t('Not Authorized...!%error_message', ['%error_message' => $error_message]));
+         return;
+       }
+     }
+@@ -150,12 +146,12 @@ function vimeo_video_uploader_node_delete($node) {
+ }
+ 
+ /**
+- * Custom function for get path redirect.
++ * {@inheritdoc}
+  */
+ function redirect_path($path) {
+   $response = new RedirectResponse($path);
+   $response->send();
+-  return TRUE;
++  return $response;
+ }
+ 
+ /**
+@@ -189,7 +185,7 @@ function vimeo_video_uploader_form_alter(&$form, FormStateInterface $form_state,
+       }
+     }
+   }
+-  if ($form_id == $form_type_add_id) {
++  if ($from_id = $form_type_add_id) {
+     // Attach js/css library file.
+     $form['#attached']['library'][] = 'vimeo_video_uploader/uploader';
+     // $form['field_embeddedvideo']['#access'] = FALSE;.

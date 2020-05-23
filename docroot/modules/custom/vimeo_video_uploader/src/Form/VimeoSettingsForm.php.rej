@@ -1,0 +1,191 @@
+--- src/Form/VimeoSettingsForm.php
++++ src/Form/VimeoSettingsForm.php
+@@ -2,9 +2,6 @@
+ 
+ namespace Drupal\vimeo_video_uploader\Form;
+ 
+-use Drupal\Core\Entity\EntityManager;
+-use Drupal\Core\Entity\EntityTypeManager;
+-use Drupal\Core\Entity\EntityTypeManagerInterface;
+ use Drupal\field\Entity\FieldConfig;
+ use Drupal\field\Entity\FieldStorageConfig;
+ use Drupal\Core\Config\ConfigFactoryInterface;
+@@ -21,26 +20,41 @@ use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+ class VimeoSettingsForm extends ConfigFormBase {
+ 
+   /**
+-   * The entity type manager.
++   * The entity display repository.
++   *
++   * @var \Drupal\Core\Entity\EntityDisplayRepositoryInterface
++   */
++  protected $entityDisplayRepository;
++  /**
++   * Drupal\Core\Entity\EntityTypeManagerInterface definition.
+    *
+    * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+    */
+   protected $entityTypeManager;
+   /**
+-   * The entity manager.
++   * Drupal\Core\Logger\LoggerChannelFactoryInterface definition.
+    *
+-   * @var \Drupal\Core\Entity\EntityManager
++   * @var Drupal\Core\Logger\LoggerChannelFactoryInterface
+    */
+-  protected $entityManager;
++  protected $logger;
+ 
+   /**
+-   * Construct function.
++   * Constructs a new VimeoSettingsForm.
++   *
++   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
++   *   The entity_type_manager definition.
++   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $logger_factory
++   *   The logger factory .
++   * @param \Drupal\Core\Entity\EntityDisplayRepositoryInterface $entity_display_repository
++   *   The entity display repository.
++   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
++   *   The config_factory.
+    */
+-  public function __construct(ConfigFactoryInterface $config_factory, LoggerChannelFactoryInterface $logger_factory, EntityTypeManagerInterface $entity_type_manager, EntityManager $entity_manager) {
+-    $this->setConfigFactory($config_factory);
+-    $this->logger = $logger_factory->get('vimeo_video_uploader');
++  public function __construct(EntityTypeManagerInterface $entity_type_manager, LoggerChannelFactoryInterface $logger_factory, EntityDisplayRepositoryInterface $entity_display_repository, ConfigFactoryInterface $config_factory) {
++    parent::__construct($config_factory);
++    $this->logger = $logger_factory;
+     $this->entityTypeManager = $entity_type_manager;
+-    $this->entityManager = $entity_manager;
++    $this->entityDisplayRepository = $entity_display_repository;
+   }
+ 
+   /**
+@@ -48,11 +62,11 @@ class VimeoSettingsForm extends ConfigFormBase {
+    */
+   public static function create(ContainerInterface $container) {
+     return new static(
+-        $container->get('config.factory'),
+-        $container->get('logger.factory'),
+-        $container->get('entity_type.manager'),
+-        $container->get('entity.manager')
+-    );
++          $container->get('config.factory'),
++          $container->get('logger.factory'),
++          $container->get('entity_type.manager'),
++          $container->get('entity_display.repository')
++      );
+   }
+ 
+   /**
+@@ -75,7 +89,7 @@ class VimeoSettingsForm extends ConfigFormBase {
+   public function buildForm(array $form, FormStateInterface $form_state) {
+ 
+     // Get the configuration from ConfigFormBase::config().
+-    $config = self::config('vimeo_video_uploader.settings');
++    $config = $this->config('vimeo_video_uploader.settings');
+     $form['values'] = [
+       '#type' => 'fieldset',
+       '#title' => $this->t('VIMEO VIDEO UPLOAD CONFIGURATION'),
+@@ -115,12 +129,11 @@ class VimeoSettingsForm extends ConfigFormBase {
+   }
+ 
+   /**
+-   * Get list of all content type by this function.
++   * {@inheritdoc}
+    */
+   public function getContentTypeList() {
+     $contentTypes = $this->entityTypeManager->getStorage('node_type')->loadMultiple();
+     $contentTypesList = [];
+-
+     foreach ($contentTypes as $contentType) {
+       $contentTypesList[$contentType->id()] = $contentType->label();
+     }
+@@ -133,13 +146,13 @@ class VimeoSettingsForm extends ConfigFormBase {
+    */
+   public function submitForm(array &$form, FormStateInterface $form_state) {
+     // Set configuration.
+-    $config = self::config('vimeo_video_uploader.settings');
++    $config = $this->config('vimeo_video_uploader.settings');
+     $form_state_values = $form_state->getValues();
+     $message = "Saved the Vimeo configuration.";
+     $old_content_type_select = $config->get('values.content_type_select');
+     if ($old_content_type_select !== $form_state_values['values']['content_type_select']) {
+       // Delete some things.
+-      $fields = $this->entityManager->getFieldDefinitions('node', $old_content_type_select);
++      $fields = $this->entityTypeManager->getFieldDefinitions('node', $old_content_type_select);
+ 
+       if (isset($fields['field_vimeo_file_browse']) && ($field = $fields['field_vimeo_file_browse'])) {
+         $field->delete();
+@@ -157,11 +170,11 @@ class VimeoSettingsForm extends ConfigFormBase {
+       ->set('values.content_type_select', $form_state_values['values']['content_type_select']);
+ 
+     $config->save();
+-    drupal_set_message($message, 'status');
++    $this->messenger()->addStatus($message);
+   }
+ 
+   /**
+-   * Add form fields in selected content type.
++   * {@inheritdoc}
+    */
+   public function addContentTypeField($bundle) {
+ 
+@@ -169,23 +182,23 @@ class VimeoSettingsForm extends ConfigFormBase {
+       'field_name' => 'field_vimeo_file_browse',
+       'entity_type' => 'node',
+       'type' => 'file',
+-        // 'cardinality' => -1,.
++          // 'cardinality' => -1,
+     ])->save();
+     FieldConfig::create([
+       'field_name' => 'field_vimeo_file_browse',
+       'entity_type' => 'node',
+       'bundle' => $bundle,
+-      'settings' => ['file_extensions' => 'mp4 mov wmv avi flv'],
++      'settings' => ['file_extensions' => 'mp4'],
+       'label' => 'Browse video for uploading to Vimeo',
+     ])->save();
+ 
+-    entity_get_form_display('node', $bundle, 'default')
++    $this->entityDisplayRepository->getFormDisplay('node', $bundle, 'default')
+       ->setComponent('field_vimeo_file_browse', [
+         'type' => 'file_generic',
+       ])
+       ->save();
+ 
+-    entity_get_display('node', $bundle, 'default')
++    $this->entityDisplayRepository->getViewDisplay('node', $bundle, 'default')
+       ->setComponent('field_vimeo_file_browse', [
+         'type' => 'file_default',
+       ])
+@@ -196,7 +209,7 @@ class VimeoSettingsForm extends ConfigFormBase {
+       'field_name' => 'field_embeddedvideo',
+       'entity_type' => 'node',
+       'type' => 'video_embed_field',
+-        // 'cardinality' => -1,.
++          // 'cardinality' => -1,
+     ])->save();
+ 
+     FieldConfig::create([
+@@ -204,17 +217,17 @@ class VimeoSettingsForm extends ConfigFormBase {
+       'entity_type' => 'node',
+       'bundle' => $bundle,
+       'label' => 'Vimeo video link',
+-        // 'settings' => array('allowed_providers' => ['vimeo','youtube']),.
++          // 'settings' => array('allowed_providers' => ['vimeo','youtube']),
+     ])->save();
+ 
+-    entity_get_form_display('node', $bundle, 'default')
++    $this->entityDisplayRepository->getFormDisplay('node', $bundle, 'default')
+       ->setComponent('field_embeddedvideo', [
+         'type' => 'video_embed_field_textfield',
+         'class' => 'neera',
+       ])
+       ->save();
+ 
+-    entity_get_display('node', $bundle, 'default')
++    $this->entityDisplayRepository->getViewDisplay('node', $bundle, 'default')
+       ->setComponent('field_embeddedvideo', [
+         'type' => 'video_embed_field_video',
+       ])
