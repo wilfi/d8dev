@@ -22,7 +22,8 @@
         "drupal/openid_connect": "^1.0@beta",
         "drupal/qa_accounts": "^1.0.0-alpha1",
         "drupal/seckit": "^1.0.0-alpha2",
-        "drupal/shield": "^1.2.0"
+        "drupal/shield": "^1.2.0",
+        "drupal/taxonomy_breadcrumb": "1.x-dev"
     },
     "require-dev": {
         "acquia/blt-require-dev": "11.x-dev",
@@ -92,7 +93,11 @@
         "patchLevel": {
             "drupal/core": "-p2"
         },
-        "patches": {}
+        "patches": {
+            "drupal/taxonomy_breadcrumb": {
+                "dprecated cdoe": "https://www.drupal.org/files/issues/2020-04-28/drupal-9-deprecated-code-report-3131332-3-0.patch"
+            }
+        }
     },
     "autoload": {
         "psr-4": {
