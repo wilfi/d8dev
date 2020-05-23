@@ -45,6 +45,8 @@ class VimeoSettingsForm extends ConfigFormBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
+      $container->get('config.factory'),
+      $container->get('logger.factory'),
       $container->get('messenger')
     );
   }
@@ -167,12 +169,12 @@ class VimeoSettingsForm extends ConfigFormBase {
         ])->save();
 
       $entityDisplayRepository = \Drupal::service('entity_display.repository');
-      $form_display = $entityDisplayRepository->getFormDisplay('node', $bundle, 'default')->setComponent('field_vimeo_file_browse', ['type' => 'file_generic']);
-      $form_display->save();
 
-      $view_display = $entityDisplayRepository->getViewDisplay('node', $bundle, 'default')
-        ->setComponent('field_vimeo_file_browse', ['type' => 'file_default']);
-      $view_display->save();
+      $entityDisplayRepository->getFormDisplay('node', $bundle)->setComponent('field_vimeo_file_browse', ['type' => 'file_generic'])->save();
+
+      $entityDisplayRepository->getViewDisplay('node', $bundle)
+        ->setComponent('field_vimeo_file_browse', ['type' => 'file_default'])->save();
+
 
 
         //add embedded video input field
@@ -191,27 +193,12 @@ class VimeoSettingsForm extends ConfigFormBase {
             //'settings' => array('allowed_providers' => ['vimeo','youtube']),
         ])->save();
 
-        entity_get_form_display('node', $bundle, 'default')
-            ->setComponent('field_embeddedvideo', array(
-                'type'=>'video_embed_field_textfield',
-                'class'=>'neera',
-            ))
-            ->save();
 
-        entity_get_display('node', $bundle, 'default')
-            ->setComponent('field_embeddedvideo', array(
-                'type' =>'video_embed_field_video'
-            ))
-            ->save();
+      $entityDisplayRepository->getFormDisplay('node', $bundle)->setComponent('field_embeddedvideo', ['type' => 'video_embed_field_textfield', 'class' => 'neera'])->save();
+
+      $entityDisplayRepository->getViewDisplay('node', $bundle)
+        ->setComponent('field_embeddedvideo', ['type' => 'video_embed_field_video'])->save();
 
     }
-    /**
-     * {@inheritdoc}
-     */
-    public static function create(ContainerInterface $container) {
-        return new static(
-            $container->get('config.factory'),
-            $container->get('logger.factory')
-        );
-    }
+
 }

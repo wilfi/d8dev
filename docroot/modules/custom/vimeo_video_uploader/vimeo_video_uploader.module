@@ -5,9 +5,6 @@
  * Module file for the Vimeo Video Uploader.
  */
 
-$vendor_path = str_replace('modules/','',dirname(dirname(__DIR__)) .'/vendor/autoload.php');
-include_once($vendor_path);
-
 use Vimeo\Vimeo;
 use Vimeo\Exceptions\VimeoUploadException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -65,10 +62,11 @@ function vimeo_video_uploader_node_presave( Drupal\Core\Entity\EntityInterface $
                     $video_url = 'http://vimeo.com/' . $video_id;
                     $node->field_embeddedvideo->value = $video_url;
                 }
-                file_delete($field_vimeo_file_browse[0]['target_id']);
+                $file = Drupal::service('entity_type.manager')->getStorage('file')->load($field_vimeo_file_browse[0]['target_id']);
+                $file->delete();
             } catch (VimeoUploadException $e){
                 $error_message = $e->getMessage();
-                drupal_set_message(t('Not Authorized...!'.$error_message ), 'error');
+                Drupal::service('messenger')->addMessage(t('Not Authorized...! @error_message', ['@error_message' => $error_message]), 'error');
                 return;
             }
         }elseif ($node->bundle() == $content_type && !empty($node->id())) {
@@ -83,12 +81,13 @@ function vimeo_video_uploader_node_presave( Drupal\Core\Entity\EntityInterface $
                     $lib->request('/videos/' . $video_id, array('name' => $video_title), 'PATCH');
                     $video_url = 'http://vimeo.com/' . $video_id;
                     $node->field_embeddedvideo->value = $video_url;
-                    file_delete($field_vimeo_file_browse[0]['target_id']);
+                    $file = Drupal::service('entity_type.manager')->getStorage('file')->load($field_vimeo_file_browse[0]['target_id']);
+                    $file->delete();
                 }
             }
             catch (VimeoUploadException $e) {
                 $error_message = $e->getMessage();
-                drupal_set_message(t('Not Authorized...!'.$error_message ), 'error');
+                Drupal::service('messenger')->addMessage(t('Not Authorized...! @error_message', ['@error_message' => $error_message]), 'error');
                 return;
             }
         } elseif ($node->bundle() == $content_type && !empty($node->id()) && empty($field_vimeo_file_browse)) {
@@ -100,7 +99,7 @@ function vimeo_video_uploader_node_presave( Drupal\Core\Entity\EntityInterface $
             }
             catch (VimeoUploadException $e) {
                 $error_message = $e->getMessage();
-                drupal_set_message(t('Not Authorized...!'.$error_message ), 'error');
+                Drupal::service('messenger')->addMessage(t('Not Authorized...! @error_message', ['@error_message' => $error_message]), 'error');
                 return;
             }
         }
@@ -132,7 +131,7 @@ function vimeo_video_uploader_node_delete($node) {
             catch (VimeoUploadException $e) {
                 redirect_path('admin/content');
                 $error_message = $e->getMessage();
-                drupal_set_message(t('Not Authorized...!'.$error_message ), 'error');
+                Drupal::service('messenger')->addMessage(t('Not Authorized...! @error_message', ['@error_message' => $error_message]), 'error');
                 return;
             }
         }
