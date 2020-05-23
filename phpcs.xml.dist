@@ -31,7 +31,7 @@
     <exclude name="DrupalPractice.InfoFiles.NamespacedDependency"/>
   </rule>
 
-  <file>docroot/modules/custom</file>
+  <!--<file>docroot/modules/custom</file>-->
   <file>docroot/themes/custom</file>
   <file>tests</file>
 
