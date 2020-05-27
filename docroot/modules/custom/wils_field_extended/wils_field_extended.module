@@ -6,6 +6,7 @@
  */
 
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Form\FormStateInterface;
 
 /**
  * Implements hook_help().
@@ -192,29 +193,71 @@ function _wils_field_extended_field_instance_settings_form(array $values = array
   return $form;
 }
 
-function wils_field_extended_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+//function wils_field_extended_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+//
+//  if ($form_state->getFormObject() instanceof \Drupal\Core\Entity\EntityFormInterface) {
+//    $entity_type = $form_state->getFormObject()->getEntity()->getEntityTypeId();
+//  }
+//
+//  $f = $form;
+//  $fs = $form_state;
+//
+//  if (isset($form['type']) && $form['type']['#value'] . '_node_settings' == $form_id) {
+//    $upload_enabled_types = \Drupal::config('mymodule.settings')
+//      ->get('upload_enabled_types');
+//    $form['workflow']['upload_' . $form['type']['#value']] = array(
+//      '#type' => 'radios',
+//      '#title' => t('Attachments'),
+//      '#default_value' => in_array($form['type']['#value'], $upload_enabled_types) ? 1 : 0,
+//      '#options' => array(
+//        t('Disabled'),
+//        t('Enabled'),
+//      ),
+//    );
+//
+//    // Add a custom submit handler to save the array of types back to the config file.
+//    $form['actions']['submit']['#submit'][] = 'mymodule_upload_enabled_types_submit';
+//  }
+//}
 
-  if ($form_state->getFormObject() instanceof \Drupal\Core\Entity\EntityFormInterface) {
-    $entity_type = $form_state->getFormObject()->getEntity()->getEntityTypeId();
+
+/**
+ * Implements hook_field_widget_form_alter().
+ */
+function wils_field_extended_field_widget_multivalue_form_alter(&$element, FormStateInterface $form_state, $context) {
+
+
+  $name = $context['items']->getName();
+  if($name=='field_fred') {
+    $element['#element_validate'][] = '_test_validate';
+  }
+  $field_definition = $context['items']->getFieldDefinition();
+  if ($field_definition instanceof \Drupal\field\FieldConfigInterface) {
+    $field_storage = $field_definition->getFieldStorageDefinition();
+    $extended_settings = $field_storage->getThirdPartySettings('wils_field_extended');
+    if (!empty($extended_settings)) {
+      $element['#wils_field_extended'] = $extended_settings;
+      $element['#element_validate'][] = '_wils_field_extended_element_validate';
+    }
   }
 
-  $f = $form;
-  $fs = $form_state;
+}
 
-  if (isset($form['type']) && $form['type']['#value'] . '_node_settings' == $form_id) {
-    $upload_enabled_types = \Drupal::config('mymodule.settings')
-      ->get('upload_enabled_types');
-    $form['workflow']['upload_' . $form['type']['#value']] = array(
-      '#type' => 'radios',
-      '#title' => t('Attachments'),
-      '#default_value' => in_array($form['type']['#value'], $upload_enabled_types) ? 1 : 0,
-      '#options' => array(
-        t('Disabled'),
-        t('Enabled'),
-      ),
-    );
+function _wils_field_extended_element_validate($element, FormStateInterface $form_state) {
 
-    // Add a custom submit handler to save the array of types back to the config file.
-    $form['actions']['submit']['#submit'][] = 'mymodule_upload_enabled_types_submit';
-  }
+  $children = Drupal\Core\Render\Element::children($element);
+
+  $form_state->setError($element, t('some errors...'));
+
+
+//    if ($element['#value'] != '') {
+//    $hex_value = preg_replace('/^#/', '', $element['#value']);
+//    if (!preg_match('/^#[0-9A-F]{3}([0-9A-F]{3})?$/', $element['#value'])) {
+//      form_error($element, t('!name must be a hexadecimal color value.', array('!name' => $element['#title'])));
+//    }
+//  }
+}
+
+function _test_validate($element, FormStateInterface $form_state) {
+  $el = $element;
 }
