@@ -5,6 +5,8 @@
  * Contains wils_field_extended.module.
  */
 
+use Drupal\Component\Utility\NestedArray;
+use Drupal\Core\Render\Element;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Form\FormStateInterface;
 
@@ -193,44 +195,12 @@ function _wils_field_extended_field_instance_settings_form(array $values = array
   return $form;
 }
 
-//function wils_field_extended_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
-//
-//  if ($form_state->getFormObject() instanceof \Drupal\Core\Entity\EntityFormInterface) {
-//    $entity_type = $form_state->getFormObject()->getEntity()->getEntityTypeId();
-//  }
-//
-//  $f = $form;
-//  $fs = $form_state;
-//
-//  if (isset($form['type']) && $form['type']['#value'] . '_node_settings' == $form_id) {
-//    $upload_enabled_types = \Drupal::config('mymodule.settings')
-//      ->get('upload_enabled_types');
-//    $form['workflow']['upload_' . $form['type']['#value']] = array(
-//      '#type' => 'radios',
-//      '#title' => t('Attachments'),
-//      '#default_value' => in_array($form['type']['#value'], $upload_enabled_types) ? 1 : 0,
-//      '#options' => array(
-//        t('Disabled'),
-//        t('Enabled'),
-//      ),
-//    );
-//
-//    // Add a custom submit handler to save the array of types back to the config file.
-//    $form['actions']['submit']['#submit'][] = 'mymodule_upload_enabled_types_submit';
-//  }
-//}
-
-
 /**
  * Implements hook_field_widget_form_alter().
  */
-function wils_field_extended_field_widget_multivalue_form_alter(&$element, FormStateInterface $form_state, $context) {
-
+function wils_field_extended_field_widget_multivalue_form_alter(&$element, FormStateInterface &$form_state, &$context) {
 
   $name = $context['items']->getName();
-  if($name=='field_fred') {
-    $element['#element_validate'][] = '_test_validate';
-  }
   $field_definition = $context['items']->getFieldDefinition();
   if ($field_definition instanceof \Drupal\field\FieldConfigInterface) {
     $field_storage = $field_definition->getFieldStorageDefinition();
@@ -238,26 +208,93 @@ function wils_field_extended_field_widget_multivalue_form_alter(&$element, FormS
     if (!empty($extended_settings)) {
       $element['#wils_field_extended'] = $extended_settings;
       $element['#element_validate'][] = '_wils_field_extended_element_validate';
+      $element['add_more']['#ajax']['callback'] = 'wilscallback';
+
+      // Remove extra items.
+      $max_delta = $element['#max_delta'];
+      $max_allowed_value = $element['#wils_field_extended']['max_allowed'];
+      if($max_delta>=$max_allowed_value) {
+        unset($element['add_more']);
+        unset($element[$max_delta]);
+      }
+
     }
   }
 
 }
 
-function _wils_field_extended_element_validate($element, FormStateInterface $form_state) {
+function _wils_field_extended_element_validate(&$element, FormStateInterface &$form_state, &$form) {
+
+  $min_required = $element['#wils_field_extended']['min_required'];
+  $min_values = 0;
 
   $children = Drupal\Core\Render\Element::children($element);
 
-  $form_state->setError($element, t('some errors...'));
+  foreach ($children as $child) {
+    if(!array_key_exists($child, $element) || !is_numeric($child)) {
+      continue;
+    }
 
+    if(isset($element[$child]['value']['#value']) && !empty($element[$child]['value']['#value'])) {
+      $min_values++;
+    }
 
-//    if ($element['#value'] != '') {
-//    $hex_value = preg_replace('/^#/', '', $element['#value']);
-//    if (!preg_match('/^#[0-9A-F]{3}([0-9A-F]{3})?$/', $element['#value'])) {
-//      form_error($element, t('!name must be a hexadecimal color value.', array('!name' => $element['#title'])));
-//    }
-//  }
+  }
+
+  if($min_values<$min_required) {
+    $error_message = Drupal::translation()->formatPlural(
+      $min_required,
+      '@field_label requires a minimum of @count item.',
+      '@field_label requires a minimum of @count items.',
+      array(
+        '@field_label' => $element['#title'],
+        '@count' => $min_required,
+      )
+    );
+    $form_state->setError($element, $error_message);
+  }
+
 }
 
-function _test_validate($element, FormStateInterface $form_state) {
-  $el = $element;
+function wilscallback($form, $form_state) {
+
+  $button = $form_state->getTriggeringElement();
+  // Go one level up in the form, to the widgets container.
+  $element = NestedArray::getValue($form, array_slice($button['#array_parents'], 0, -1));
+  $delta = $element['#max_delta'];
+  $triggered_element = $element['#field_name'];
+  $max_allowed_value = $form[$triggered_element]['widget']['#wils_field_extended']['max_allowed'];
+
+  if($delta<$max_allowed_value) {
+    $element = \Drupal\Core\Field\WidgetBase::addMoreAjax($form, $form_state);
+    return $element;
+  }
+
+  unset($element['add_more']);
+  return $element;
 }
+
+
+function wils_field_extended_preprocess_status_messages(&$variables) {
+
+  // This example is from rdf_preprocess_image(). It adds an RDF attribute
+  // to the image hook's variables.
+  $variables['attributes']['typeof'] = array(
+    'foaf:Image',
+  );
+}
+
+function wils_field_extended_theme_suggestions_status_messages_alter(array &$suggestions, array $variables) {
+
+  if (empty($variables['header'])) {
+    $suggestions[] = 'wils__' . 'no_header';
+  }
+}
+
+//function wils_field_extended_form_node_page_edit_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+//
+//
+//  $fo = $form;
+//  $fs = $form_state;
+//
+//}
