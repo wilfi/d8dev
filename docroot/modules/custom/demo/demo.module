@@ -8,7 +8,6 @@
 use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
-use Drupal\demo\Event\NodeInsertDemoEvent;
 use Drupal\node\NodeInterface;
 
 /**
@@ -27,6 +26,9 @@ function demo_help($route_name, RouteMatchInterface $route_match) {
   }
 }
 
+/**
+ * Implements hook_ENTITY_TYPE_view().
+ */
 function demo_node_view(array &$build, EntityInterface $entity, EntityViewDisplayInterface $display, $view_mode) {
   $session = \Drupal::request()->getSession();
   $current_counts = $session
@@ -49,11 +51,11 @@ function demo_node_view(array &$build, EntityInterface $entity, EntityViewDispla
   $module_handler->invokeAll('demo_node_viewcount', [$current_counts[$entity->id()], $entity,]);
 
   // Example alter.
-//   $module_handler->alter('demo_example', $items);
+   $module_handler->alter('demo_example', $items);
 //
 //  // Example invoke & alter.
-//  $items = $module_handler->invokeAll('demo_list', [$items]);
-//  $module_handler->alter('demo_list', $items);
+  $items = $module_handler->invokeAll('demo_list', [$items]);
+  $module_handler->alter('demo_list', $items);
 
 
   $build['item_list'] = [
@@ -103,12 +105,4 @@ function demo_demo_list($items) {
   $extras = ['4','5','6'];
   $items = array_merge($items, $extras);
   return $items;
-}
-
-/**
- * Implements hook_ENTITY_TYPE_insert().
- */
-function demo_node_insert(Drupal\Core\Entity\EntityInterface $entity) {
-  // Dispatch the node insert demo event so that subscribers can act accordingly.
-  \Drupal::service('event_dispatcher')->dispatch(NodeInsertDemoEvent::DEMO_NODE_INSERT, new NodeInsertDemoEvent($entity));
 }

@@ -1,9 +1,9 @@
 <?php
 
-namespace Drupal\demo\EventSubscriber;
+namespace Drupal\eventdemo\EventSubscriber;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Drupal\demo\Event\NodeInsertDemoEvent;
+use Drupal\eventdemo\Event\NodeInsertDemoEvent;
 
 /**
  * Class DefaultSubscriber.
@@ -17,7 +17,7 @@ class DefaultSubscriber implements EventSubscriberInterface {
    */
   public function onDemoNodeInsert(NodeInsertDemoEvent $event) {
     $entity = $event->getEntity();
-    \Drupal::logger('event_subscriber_demo')->notice('New @type: @title. Created by: @owner',
+    \Drupal::logger('event_demo')->notice('New @type: @title. Created by: @owner',
       array(
         '@type' => $entity->getType(),
         '@title' => $entity->label(),

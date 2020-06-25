@@ -1,0 +1,35 @@
+<?php
+
+/**
+ * @file
+ * Contains eventdemo.module.
+ */
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\eventdemo\Event\NodeInsertDemoEvent;
+
+/**
+ * Implements hook_help().
+ */
+function eventdemo_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the eventdemo module.
+    case 'help.page.eventdemo':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('My Awesome Module') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+
+/**
+ * Implements hook_ENTITY_TYPE_insert().
+ */
+function eventdemo_node_insert(EntityInterface $entity) {
+  // Dispatch the node insert demo event so that subscribers can act accordingly.
+  \Drupal::service('event_dispatcher')->dispatch(NodeInsertDemoEvent::DEMO_NODE_INSERT, new NodeInsertDemoEvent($entity));
+}

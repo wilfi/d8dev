@@ -1,0 +1,13 @@
+{
+    "name": "eventdemo",
+    "type": "drupal-module",
+    "description": "My Awesome Module",
+    "keywords": [
+    ],
+    "homepage": "https://www.drupal.org/project/eventdemo",
+    "minimum-stability": "dev",
+    "support": {
+        "issues": "https://www.drupal.org/project/issues/eventdemo",
+        "source": "http://cgit.drupalcode.org/eventdemo",
+    },
+}
