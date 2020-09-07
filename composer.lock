@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cb0d497aa97c90d4536349b53af76ad3",
+    "content-hash": "b515b5cae60714f80613188316edb89a",
     "packages": [
         {
             "name": "acquia/blt",
@@ -934,7 +934,7 @@
             "version": "v2.3.4",
             "source": {
                 "type": "git",
-                "url": "https://github.com/fengyuanchen/cropper.git",
+                "url": "git@github.com:fengyuanchen/cropper.git",
                 "reference": "30c58b29ee21010e17e58ebab165fbd84285c685"
             },
             "dist": {
@@ -5702,6 +5702,9 @@
             },
             "type": "drupal-module",
             "extra": {
+                "branch-alias": {
+                    "dev-1.x": "1.x-dev"
+                },
                 "drupal": {
                     "version": "8.x-1.0-rc3",
                     "datestamp": "1581640483",
@@ -7186,6 +7189,67 @@
             "homepage": "https://www.drupal.org/project/moderation_sidebar",
             "support": {
                 "source": "https://git.drupalcode.org/project/moderation_sidebar"
+            }
+        },
+        {
+            "name": "drupal/multiple_registration",
+            "version": "2.92.0",
+            "source": {
+                "type": "git",
+                "url": "https://git.drupalcode.org/project/multiple_registration.git",
+                "reference": "8.x-2.92"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/multiple_registration-8.x-2.92.zip",
+                "reference": "8.x-2.92",
+                "shasum": "815d4cebc441596b62aff11cbf60ff0962cd8ef5"
+            },
+            "require": {
+                "drupal/core": "^8 || ^9"
+            },
+            "type": "drupal-module",
+            "extra": {
+                "drupal": {
+                    "version": "8.x-2.92",
+                    "datestamp": "1590170486",
+                    "security-coverage": {
+                        "status": "covered",
+                        "message": "Covered by Drupal's security advisory policy"
+                    }
+                }
+            },
+            "notification-url": "https://packages.drupal.org/8/downloads",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Oleksandr Ivanchenko (oleksandr-ivanchenko)",
+                    "homepage": "https://www.drupal.org/u/oleksandr-ivanchenko",
+                    "role": "Maintainer"
+                },
+                {
+                    "name": "Yaroslav Samoilenko (ysamoylenko)",
+                    "homepage": "https://www.drupal.org/u/ysamoylenko",
+                    "role": "Co-maintainer"
+                },
+                {
+                    "name": "Alex Liannoy (alex-liannoy)",
+                    "homepage": "https://www.drupal.org/u/alex-liannoy",
+                    "role": "Co-maintainer"
+                }
+            ],
+            "description": "Ability to create role-specific registration pages.",
+            "homepage": "https://www.drupal.org/project/multiple_registration",
+            "keywords": [
+                "Drupal",
+                "Multiple Registration",
+                "multiple_registration"
+            ],
+            "support": {
+                "source": "https://git.drupalcode.org/project/multiple_registration",
+                "issues": "https://www.drupal.org/project/multiple_registration"
             }
         },
         {
@@ -9151,12 +9215,12 @@
             "version": "0.9.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/njh/easyrdf.git",
+                "url": "https://github.com/easyrdf/easyrdf.git",
                 "reference": "acd09dfe0555fbcfa254291e433c45fdd4652566"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/njh/easyrdf/zipball/acd09dfe0555fbcfa254291e433c45fdd4652566",
+                "url": "https://api.github.com/repos/easyrdf/easyrdf/zipball/acd09dfe0555fbcfa254291e433c45fdd4652566",
                 "reference": "acd09dfe0555fbcfa254291e433c45fdd4652566",
                 "shasum": ""
             },
@@ -15982,5 +16046,6 @@
     "platform-dev": [],
     "platform-overrides": {
         "php": "7.2"
-    }
+    },
+    "plugin-api-version": "1.1.0"
 }

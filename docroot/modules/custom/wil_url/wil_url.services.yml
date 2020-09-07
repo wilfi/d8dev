@@ -1,0 +1,22 @@
+services:
+  #http_middleware.wil:
+  #  class: Drupal\wil_url\StackMiddleware\WilMiddle
+  #  tags:
+  #    - { name: http_middleware, priority: 210, responder: true }
+  #wil_event_subscriber:
+  #  class: Drupal\wil_url\EventSubscriber\WilRedirectSubscriber
+  #  tags:
+  #    - {name: event_subscriber}
+  access_check.model.list:
+    class: Drupal\wil_url\Access\MapAccessCheck
+    arguments: ['@current_user']
+    tags:
+      - { name: access_check, applies_to: _map_access_check }
+  #map.route_subscriber:
+  #  class: Drupal\wil_url\Routing\RouteSubscriber
+  #  tags:
+  #    - { name: event_subscriber, priority: -1000 }
+  wil_url.route_subscriber:
+    class: Drupal\wil_url\Routing\RouteSubscriber
+    tags:
+      - { name: event_subscriber }
