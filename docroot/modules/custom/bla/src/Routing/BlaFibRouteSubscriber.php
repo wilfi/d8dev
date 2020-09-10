@@ -21,7 +21,10 @@ class BlaFibRouteSubscriber extends RouteSubscriberBase {
       $collection->get('override.fibonacci_controller'),
     ];
     foreach ($routes as $route) {
-      $route->setPath('/bla/fib/{num}');
+//      $route->setRequirements([
+//        '_example_access_check' => 'TRUE',
+//      ]);
+      $route->setPath('/bla/wil/{num}');
       $route->setDefault('num', 5);
     }
 
@@ -51,6 +54,5 @@ class BlaFibRouteSubscriber extends RouteSubscriberBase {
         $route->setDefault('_form', 'Drupal\bla\Form\SiteSettingsFormExtended');
       }
     }
-
   }
 }
