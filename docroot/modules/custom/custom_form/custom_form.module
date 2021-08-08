@@ -1,0 +1,131 @@
+<?php
+
+/**
+ * @file
+ * Contains custom_form.module.
+ */
+
+use Drupal\Component\Utility\Xss;
+use Drupal\Core\Render\Markup;
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Ajax\AjaxResponse;
+use Drupal\Core\Ajax\HtmlCommand;
+use Drupal\Core\Form\FormStateInterface;
+
+/**
+ * Implements hook_help().
+ */
+function custom_form_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the custom_form module.
+    case 'help.page.custom_form':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('My Awesome Module') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function custom_form_theme() {
+  return [
+    'custom_form' => [
+      'render element' => 'children',
+    ],
+    'webform_handler_example_summary' => [
+        'variables' => ['settings' => NULL, 'handler' => []],
+      ],
+  ];
+}
+
+function custom_form_webform_submission_form_alter(array &$form, FormStateInterface $form_state, $form_id) {
+
+  if ($form['#webform_id'] == 'sample_form') {
+
+//    $form['message'] = [
+//      '#type' => 'markup',
+//      '#markup' => '<div id="result-message"></div>'
+//    ];
+//
+//    $form['actions']['submit']['#ajax'] = [
+//      'callback' => '_custom_ajx',
+//      'type' => 'throbber',
+//    ];
+
+    //$form['actions']['submit']['#submit'][] = '_custom_form_submit';
+  }
+}
+
+function _custom_form_submit(&$form,  FormStateInterface $form_state) {
+  $form_state->setRedirect(FALSE);
+}
+
+function _custom_ajx(array &$form, FormStateInterface $form_state) {
+
+  \Drupal::messenger()->addMessage('success', 'status', TRUE);
+
+  $message = [
+    '#theme' => 'status_messages',
+    '#message_list' => drupal_get_messages(),
+  ];
+
+  $messages = \Drupal::service('renderer')->render($message);
+
+  $response = new AjaxResponse();
+  $response->addCommand(new HtmlCommand('#result-message', $messages));
+  return $response;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for views_exposed_form.
+ */
+function custom_form_form_views_exposed_form_alter(&$form, FormStateInterface $form_state) {
+  //$wil = $form;
+  if ($form['#id'] == 'views-exposed-form-wil-page-1') {
+    // Load org structure & user filters.
+    $wil = $form;
+    //\Drupal::service('assessment.org_structure.options')->buildForm($form, $form_state);
+    $op = ['hi' => 'hi', 'all' => 'all'];
+    $form['test'] = [
+      '#type' => 'select',
+      '#name' => 'test',
+      '#empty_option' => 'wil',
+      '#options' => $op,
+      '#ajax' => [
+        'callback' => '_assessment_call',
+        'event' => 'change',
+        'wrapper' => 'edit-output-wil',
+        'progress' => [
+          'type' => 'throbber',
+        ],
+      ],
+    ];
+
+
+    $form['wiltest'] = [
+      '#type' => 'select',
+      '#options' => [],
+      '#prefix' => '<div id="edit-output-wil">',
+      '#suffix' => '</div>',
+    ];
+
+
+  }
+}
+
+function _assessment_call(array &$form, FormStateInterface $form_state) {
+  // Return the HTML markup we built above in a render array.
+//  $options = ['hi' => 'hi', 'all' => 'all'];
+//  $form['wiltest']['#options'] = $options;
+//  return $form['wiltest'];
+
+  $response = new AjaxResponse();
+  $message = 'test';
+  $response->addCommand(new HtmlCommand('#edit-output-wil', $message));
+  return $response;
+
+}
